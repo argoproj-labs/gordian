@@ -6,6 +6,8 @@ src=".github/gordian-logo.png">
 Gordian
 ========
 
+[[!Build Status] (https://github.com/argoproj-labs/gordian/workflows/Python%20package/badge.svg)](https://github.com/argoproj-labs/gordian/actions?query=workflow%3A%22Python+package%22)
+
 Gordian applies transformations to files in github repositories and create PRs for the owners of the repositories review and merge them.
 
 This project grew from a need to keep k8s onboarded services consistent and roll out changes at scale, so the main use case for this tool
