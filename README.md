@@ -8,6 +8,7 @@ Gordian
 
 [![Latest Release](https://img.shields.io/github/v/release/argoproj-labs/gordian.svg)](https://github.com/argoproj-labs/gordian/releases/)
 [![Latest PyPi Version](https://badge.fury.io/py/gordian.svg)](https://pypi.python.org/pypi/gordian/)
+[![codecov](https://codecov.io/gh/argoproj-labs/gordian/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj-labs/gordian)
 [![Build Status](https://github.com/argoproj-labs/gordian/workflows/Python%20package/badge.svg)](https://github.com/argoproj-labs/gordian/actions?query=workflow%3A%22Python+package%22)
 
 Gordian applies transformations to files in github repositories and create PRs for the owners of the repositories review and merge them.
