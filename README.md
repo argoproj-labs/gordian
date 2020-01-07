@@ -6,6 +6,7 @@ src=".github/gordian-logo.png">
 Gordian
 ========
 
+[![Latest Release](https://img.shields.io/github/v/release/argoproj-labs/gordian.svg)](https://github.com/argoproj-labs/gordian/releases/)
 [![Build Status](https://github.com/argoproj-labs/gordian/workflows/Python%20package/badge.svg)](https://github.com/argoproj-labs/gordian/actions?query=workflow%3A%22Python+package%22)
 
 Gordian applies transformations to files in github repositories and create PRs for the owners of the repositories review and merge them.
