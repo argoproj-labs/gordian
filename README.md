@@ -79,7 +79,7 @@ pip install gordian
 Docker image
 ============
 ```
-docker run --rm -it gordian:0.4.2 -h
+docker run --rm -it argoprojlabs/gordian:latest -h
 usage: gordian [-h] [-c CONFIG_FILE] --pr PR_MESSAGE [-v] [-d] [-M | -m | -p]
                 -s SEARCH -r REPLACE
 
