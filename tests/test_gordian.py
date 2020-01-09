@@ -21,7 +21,7 @@ class TestGordian(unittest.TestCase):
             instance = RepoMock.return_value
             instance.dirty = False
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
-            RepoMock.assert_has_calls([call('sblumin/TestService1', branch='test'), call('sblumin/TestService2', branch='test')], any_order=True)
+            RepoMock.assert_has_calls([call('testOrg/TestService1', branch='test'), call('testOrg/TestService2', branch='test')], any_order=True)
             self.assertNotIn(call().bump_version(False, False, False, False), RepoMock.mock_calls)
 
     def test_apply_transformations_with_changes(self):
