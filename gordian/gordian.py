@@ -40,6 +40,12 @@ def get_basic_parser():
         help='Config file path.'
     )
     parser.add_argument(
+        '-g', '--github-api',
+        required=False,
+        dest='github_api',
+        help='Github API URL'
+    )
+    parser.add_argument(
         '--pr',
         required=True,
         dest='pr_message',
@@ -117,7 +123,7 @@ def apply_transformations(args, transformations):
     data = config.get_data()
     for repo_name in data:
         logger.info(f'Processing repo: {repo_name}')
-        repo = Repo(repo_name, branch=args.branch)
+        repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch)
         repo.get_files()
         for transformation in transformations:
             transformation(args, repo).run()

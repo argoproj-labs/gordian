@@ -6,17 +6,23 @@ import os
 
 logger = logging.getLogger(__name__)
 
-BASE_URL = "https://api.github.com"
+BASE_URL = 'https://api.github.com'
 
 
 class Repo:
 
-    def __init__(self, repo_name, branch=None, git=None):
+    def __init__(self, repo_name, github_api_url=None, branch=None, git=None):
+        if github_api_url is None:
+            self.github_api_url = BASE_URL
+        else:
+            self.github_api_url = github_api_url
+
         if git is None:
             if "GIT_TOKEN" in os.environ:
-                git = Github(base_url=BASE_URL, login_or_token=os.environ['GIT_TOKEN'])
+                git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_TOKEN'])
             else:
-                git = Github(base_url=BASE_URL, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
+                git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
+
         self.repo_name = repo_name
         self.repo = git.get_repo(repo_name)
         self.files = []

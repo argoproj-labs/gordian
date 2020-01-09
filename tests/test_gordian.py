@@ -15,14 +15,14 @@ class TestGordian(unittest.TestCase):
             self.dry_run = dry_run
             self.pr_message = 'test'
             self.branch = 'test'
+            self.github_api = None
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
             instance = RepoMock.return_value
             instance.dirty = False
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
-            RepoMock.assert_has_calls([call('testOrg/TestService1', branch='test'), call('testOrg/TestService2', branch='test')], any_order=True)
-            self.assertNotIn(call().bump_version(False, False, False, False), RepoMock.mock_calls)
+            RepoMock.assert_has_calls([call('testOrg/TestService1', github_api_url=None, branch='test'), call('testOrg/TestService2', github_api_url=None, branch='test')], any_order=True)
 
     def test_apply_transformations_with_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation', ) as TransformationMockClass:
