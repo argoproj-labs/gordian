@@ -107,7 +107,7 @@ Pulpo
 Example: Changing the values for the metrics in HPA object.
 ```
 # pulpo -c all_servicies.yaml --pr 'Scaling at 80% CPU not 13%' json_patch.json
-[2019-10-07 22:54:24,978] INFO Processing repo: rrodriquez/consumer-tax-documents-iks-config
+[2019-10-07 22:54:24,978] INFO Processing repo: user/consumer-tax-documents-iks-config
 [2019-10-07 22:54:26,777] INFO Path name: service/global-values.yaml
 [2019-10-07 22:54:26,930] INFO Detected changes: {'values_changed': {"root['spec']['metrics'][0]['object']['target']['value']": {'new_value': 13, 'old_value': 80}, "root['spec']['metrics'][1]['object']['target']['value']": {'new_value': 13, 'old_value': 80}}}
 [2019-10-07 22:54:26,942] INFO Applied json patch defined in json_patch.json
@@ -183,7 +183,7 @@ Run the tests:
 container# pytest
 =========================================== test session starts ============================================
 platform linux -- Python 3.7.1, pytest-4.5.0, py-1.8.0, pluggy-0.11.0
-rootdir: /Users/rrodriquez/git/argoproj-labs
+rootdir: /Users/user/git/argoproj-labs
 plugins: requests-mock-1.6.0, cov-2.7.1
 collected 33 items
 
