@@ -17,9 +17,8 @@ Gordian applies transformations to files in github repositories and create PRs f
 This project grew from a need to keep k8s onboarded services consistent and roll out changes at scale, so the main use case for this tool
 is to be able to update the kustomize configuration for all our services.
 
-This module installs two executables:
+This module installs one executable:
     - `gordian` can search and replace strings from files.
-    - `pulpo` can apply more complex transformations based on the jsonpatch standard (https://tools.ietf.org/html/rfc6902#page-4)
 
 It is designed with extensibility in mind, here is an example how to extend it to configure the HPA min/max values of our deployments to not scale.
 
@@ -100,70 +99,6 @@ optional arguments:
   -r REPLACE, --replace REPLACE
                         The string that will replace instances of the searched
                         string. (default: None)
-```
-
-Pulpo
-=====
-Example: Changing the values for the metrics in HPA object.
-```
-# pulpo -c all_servicies.yaml --pr 'Scaling at 80% CPU not 13%' json_patch.json
-[2019-10-07 22:54:24,978] INFO Processing repo: user/consumer-tax-documents-iks-config
-[2019-10-07 22:54:26,777] INFO Path name: service/global-values.yaml
-[2019-10-07 22:54:26,930] INFO Detected changes: {'values_changed': {"root['spec']['metrics'][0]['object']['target']['value']": {'new_value': 13, 'old_value': 80}, "root['spec']['metrics'][1]['object']['target']['value']": {'new_value': 13, 'old_value': 80}}}
-[2019-10-07 22:54:26,942] INFO Applied json patch defined in json_patch.json
-[2019-10-07 22:54:28,528] INFO Path name: service/kustomization.yaml
-[2019-10-07 22:54:28,652] INFO Path name: overlays/cpf-usw2/envconfig-values.yaml
-[2019-10-07 22:54:28,790] INFO Path name: overlays/cpf-usw2/kustomization.yaml
-[2019-10-07 22:54:28,920] INFO Path name: overlays/cqa-usw2/envconfig-values.yaml
-[2019-10-07 22:54:29,075] INFO Path name: overlays/cqa-usw2/kustomization.yaml
-[2019-10-07 22:54:29,198] INFO Path name: overlays/dev-usw2/envconfig-values.yaml
-[2019-10-07 22:54:29,319] INFO Path name: overlays/dev-usw2/kustomization.yaml
-[2019-10-07 22:54:29,467] INFO Path name: overlays/pf-usw2/envconfig-values.yaml
-[2019-10-07 22:54:29,601] INFO Path name: overlays/pf-usw2/kustomization.yaml
-[2019-10-07 22:54:29,730] INFO Path name: overlays/prd-use2/envconfig-values.yaml
-[2019-10-07 22:54:29,850] INFO Path name: overlays/prd-use2/kustomization.yaml
-[2019-10-07 22:54:29,987] INFO Path name: overlays/prd-usw2/envconfig-values.yaml
-[2019-10-07 22:54:30,171] INFO Path name: overlays/prd-usw2/kustomization.yaml
-[2019-10-07 22:54:30,298] INFO Path name: overlays/qa-usw2/envconfig-values.yaml
-[2019-10-07 22:54:30,423] INFO Path name: overlays/qa-usw2/kustomization.yaml
-[2019-10-07 22:54:30,558] INFO Path name: service/files/mystiko-sigsci.yaml
-[2019-10-07 22:54:30,699] INFO Path name: overlays/prd-use2/files/mystiko-service.yaml
-[2019-10-07 22:54:30,821] INFO Path name: overlays/prd-usw2/files/mystiko-service.yaml
-[2019-10-07 22:54:31,524] INFO PR created: Scaling at 80% CPU not 13%
-#
-```
-The content of the `json_patch.json` in the previous execution is:
-```json
-[
-  {"op": "test", "path": "/kind", "value": "HorizontalPodAutoscaler"},
-  {"op": "replace", "path": "/spec/metrics/0/object/target/value", "value": 80},
-  {"op": "replace", "path": "/spec/metrics/1/object/target/value", "value": 80}
-]
-```
-
-
-```
-docker run --rm -it --entrypoint pulpo gordian:0.4.2 -h
-usage: pulpo [-h] [-c CONFIG_FILE] --pr PR_MESSAGE [-v] [-d] [-M | -m | -p]
-             [-f FILE_REGEXP]
-             patch_path
-
-positional arguments:
-  patch_path            Path to the json patch file.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -c CONFIG_FILE, --config CONFIG_FILE
-                        Config file path. (default: config.yaml)
-  --pr PR_MESSAGE       Pull request name. (default: None)
-  -v, --verbose
-  -d, --dry-run         Enable dry run mode (default: False)
-  -M, --major           Bump the major version. (default: False)
-  -m, --minor           Bump the minor version. (default: False)
-  -p, --patch           Bump the patch version. (default: False)
-  -f FILE_REGEXP, --filter FILE_REGEXP
-                        This regular expression will be used to filter the
-                        files to apply the transformation. (default: .*\.yaml)
 ```
 
 Development
