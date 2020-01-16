@@ -124,7 +124,6 @@ def apply_transformations(args, transformations):
     for repo_name in data:
         logger.info(f'Processing repo: {repo_name}')
         repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch)
-        repo.get_files()
         for transformation in transformations:
             transformation(args, repo).run()
         if repo.dirty:

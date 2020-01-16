@@ -1,7 +1,9 @@
 import unittest
+import pytest
 from gordian.repo import Repo
 from unittest.mock import MagicMock, patch
-
+from gordian.files import YamlFile
+from .utils import Utils
 
 class TestRepo(unittest.TestCase):
 
@@ -11,6 +13,8 @@ class TestRepo(unittest.TestCase):
         self.mock_repo = MagicMock()
         self.mock_branches = MagicMock()
         self.repo = Repo('test', git=self.mock_git)
+        self.repo.files.append(Utils.create_github_content_file())
+
         self.mock_repo.get_branches.return_value = self.mock_branches
         mock_git.get_repo.return_value = self.mock_repo
         self.instance = Repo(None, branch='', git=mock_git)
@@ -29,5 +33,13 @@ class TestRepo(unittest.TestCase):
         self.assertEqual(self.repo.github_api_url, 'https://api.github.com')
 
     def test_override_github_url(self):
-        self.repo = Repo('test', github_api_url='https://test.github.com', git=self.mock_git)
-        self.assertEqual(self.repo.github_api_url, 'https://test.github.com')
+        repo = Repo('test', github_api_url='https://test.github.com', git=self.mock_git)
+        self.assertEqual(repo.github_api_url, 'https://test.github.com')
+
+    def test_get_object_does_not_exist(self):
+        with pytest.raises(FileNotFoundError):
+            self.repo.get_objects('test')
+
+    def test_get_existing_object(self):
+        contents = self.repo.get_objects('/content.yaml')
+        assert(isinstance(contents, YamlFile))

@@ -3,6 +3,7 @@ from github import GithubException
 import datetime
 import logging
 import os
+from gordian.files import YamlFile, JsonFile
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +12,7 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, git=None):
+    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=[]):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -24,8 +25,8 @@ class Repo:
                 git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
 
         self.repo_name = repo_name
-        self.repo = git.get_repo(repo_name)
-        self.files = []
+        self._repo = git.get_repo(repo_name)
+        self.files = files
         self.version_file = None
         self.branch_exists = False
         self.dirty = False
@@ -35,29 +36,45 @@ class Repo:
         else:
             self.branch_name = f"refs/heads/{datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S.%f')}"
 
+    def get_objects(self, filename, klass=None):
+        file = self.find_file(filename)
+
+        if file is None:
+            raise FileNotFoundError
+
+        if klass:
+            return klass(file, self)
+
+        _, ext = os.path.splitext(filename)
+
+        if ext in ('.yaml', '.yml'):
+            return YamlFile(file, self)
+        if ext in ('.json'):
+            return JsonFile(file, self)
+
     def get_files(self):
-        if self.files:
-            return self.files
+        if not self.files:
+            contents = self._repo.get_contents("")
+            while contents:
+                file_content = contents.pop(0)
+                if file_content.path == 'version':
+                    self.version_file = file_content
+                if file_content.type == 'dir':
+                    contents.extend(self._repo.get_contents(file_content.path))
+                else:
+                    self.files.append(file_content)
 
-        contents = self.repo.get_contents("")
-        while contents:
-            file_content = contents.pop(0)
-            if file_content.path == 'version':
-                self.version_file = file_content
-            if file_content.type == 'dir':
-                contents.extend(self.repo.get_contents(file_content.path))
-            else:
-                self.files.append(file_content)
+        return self.files
 
-    def get_file(self, filename):
+    def find_file(self, filename):
         for file in self.get_files():
             if file.path == filename:
                 return file
 
     def make_branch(self):
-        sb = self.repo.get_branch('master')
+        sb = self._repo.get_branch('master')
         try:
-            ref = self.repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
+            ref = self._repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
         except GithubException as e:
             print(f"Branch {self.branch_name} already exists in github")
         self.branch_exists = True
@@ -98,7 +115,7 @@ class Repo:
         if not self.branch_exists:
             self.make_branch()
 
-        self.repo.update_file(
+        self._repo.update_file(
             repo_file.path,
             message,
             content,
@@ -116,7 +133,7 @@ class Repo:
         if not self.branch_exists:
             self.make_branch()
 
-        self.repo.create_file(
+        self._repo.create_file(
             path,
             message,
             contents,
@@ -133,7 +150,7 @@ class Repo:
         if not self.branch_exists:
             self.make_branch()
 
-        self.repo.delete_file(
+        self._repo.delete_file(
             file.path,
             message,
             file.sha,
