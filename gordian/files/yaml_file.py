@@ -14,4 +14,6 @@ class YamlFile(BaseFile):
         return yaml.dump_all(self.objects, default_flow_style=False, explicit_start=True)
 
 def represent_none(self, _):
+    # Disable dumping 'null' string for null values
+    # Taken from here: https://stackoverflow.com/a/41786451
     return self.represent_scalar('tag:yaml.org,2002:null', '')
