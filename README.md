@@ -34,26 +34,17 @@ class PreScale(Transformation):
         self.environments = args.environments
 
     def run(self):
-        changes = False
-        for f in self.repo.files:
-            if not re.match(f'overlays/{self.environments}/envconfig-values.yaml', f.path):
-                continue
+        for env in self.environments:
+            file = self.repo.get_objects(f'overlays/{self.environments}/envconfig-values.yaml')
 
-            k8s_patches = list(yaml.safe_load_all(f.decoded_content))
-            for r in k8s_patches:
-                if r['kind'] != 'HorizontalPodAutoscaler':
+            for obj in file:
+                if obj['kind'] != 'HorizontalPodAutoscaler':
                     continue
 
-                if r['spec']['minReplicas'] != r['spec']['maxReplicas']:
-                    r['spec']['maxReplicas'] = r['spec']['minReplicas']
-                    message = f"Setting maxRelicas = minReplicas = {r['spec']['minReplicas']}"
-                    changes = True
+                if obj['spec']['minReplicas'] != obj['spec']['maxReplicas']:
+                    obj['spec']['maxReplicas'] = obj['spec']['minReplicas']
 
-                break
-
-            if changes:
-                file_str = yaml.dump_all(k8s_patches, default_flow_style=False, explicit_start=True)
-                self.repo.update_file(f, file_str, message, self.dry_run)
+            file.save(f'Setting maxRelicas = minReplicas = {obj['spec']['minReplicas']}', self.dry_run)
 
 
 if __name__ == '__main__':
