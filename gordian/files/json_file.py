@@ -6,8 +6,8 @@ class JsonFile(BaseFile):
     def __init__(self, github_file, repo):
         super().__init__(github_file, repo)
 
-    def load_objects(self):
+    def _load_objects(self):
         return json.loads(self.file_contents)
 
-    def dump(self):
+    def _dump(self):
         return json.dumps(self.objects, indent=4)

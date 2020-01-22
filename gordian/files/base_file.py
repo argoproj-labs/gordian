@@ -9,7 +9,7 @@ class BaseFile:
         self.repo = repo
         self.num = start
         self.file_contents = github_file.decoded_content
-        self.objects = self.load_objects()
+        self.objects = self._load_objects()
 
     def __iter__(self):
         return self
@@ -23,10 +23,10 @@ class BaseFile:
         return self.objects[num]
 
     def save(self, message, dry_run):
-        self.repo.update_file(self.github_file, self.dump(), message, dry_run)
+        self.repo.update_file(self.github_file, self._dump(), message, dry_run)
 
-    def load_objects(self):
+    def _load_objects(self):
         raise NotImplementedError
 
-    def dump(self):
+    def _dump(self):
         raise NotImplementedError

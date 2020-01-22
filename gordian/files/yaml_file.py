@@ -7,10 +7,10 @@ class YamlFile(BaseFile):
         super().__init__(github_file, repo)
         yaml.add_representer(type(None), represent_none)
 
-    def load_objects(self):
+    def _load_objects(self):
         return list(yaml.safe_load_all(self.file_contents))
 
-    def dump(self):
+    def _dump(self):
         return yaml.dump_all(self.objects, default_flow_style=False, explicit_start=True)
 
 def represent_none(self, _):
