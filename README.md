@@ -12,15 +12,46 @@ Gordian
 [![Python Build Status](https://github.com/argoproj-labs/gordian/workflows/Python%20package/badge.svg)](https://github.com/argoproj-labs/gordian/actions?query=workflow%3A%22Python+package%22)
 [![Docker Build Status](https://img.shields.io/docker/cloud/build/argoprojlabs/gordian.svg)](https://hub.docker.com/repository/docker/argoprojlabs/gordian)
 
-Gordian applies transformations to files in github repositories and create PRs for the owners of the repositories review and merge them.
+Gordian applies transformations to files in github repositories and create PRs for the owners of the repositories to review and merge them.
 
-This project grew from a need to keep k8s onboarded services consistent and roll out changes at scale, so the main use case for this tool
-is to be able to update the kustomize configuration for all our services.
+This project grew from a need to keep various kubernetes services consistent and roll out changes at scale. The main use case for this tool is to make changes to configuration files across multiple repositories simultaneously.
 
-This module installs one executable:
-    - `gordian` can search and replace strings from files.
+# Use Cases
 
-It is designed with extensibility in mind, here is an example how to extend it to configure the HPA min/max values of our deployments to not scale.
+## Search and Replace
+
+You can use the docker image to search and replace various strings across repositories.
+
+```
+docker run --rm -it argoprojlabs/gordian:latest -h
+usage: gordian [-h] [-c CONFIG_FILE] [-g GITHUB_API] --pr PR_MESSAGE [-v] [-d]
+               [-b BRANCH] [-M | -m | -p] -s SEARCH -r REPLACE
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG_FILE, --config CONFIG_FILE
+                        Config file path. (default: config.yaml)
+  -g GITHUB_API, --github-api GITHUB_API
+                        Github API URL (default: None)
+  --pr PR_MESSAGE       Pull request name. (default: None)
+  -v, --verbose
+  -d, --dry-run         Enable dry run mode (default: False)
+  -b BRANCH, --branch BRANCH
+                        Branch name to use (default: None)
+  -M, --major           Bump the major version. (default: False)
+  -m, --minor           Bump the minor version. (default: False)
+  -p, --patch           Bump the patch version. (default: False)
+  -s SEARCH, --search SEARCH
+                        The string to search for in config files. (default:
+                        None)
+  -r REPLACE, --replace REPLACE
+                        The string that will replace instances of the searched
+                        string. (default: None)
+```
+
+## Complex transformations
+
+You can use the interface to script complex changes across various JSON and YAML files, as shown in this example that modifies a kubernetes resource. You can see more examples in the `examples` directory.
 
 ```python
 import sys
@@ -60,51 +91,23 @@ if __name__ == '__main__':
     apply_transformations(args, [PreScale])
 ```
 
+# Dependencies
+- `config.yaml` (required) - list of repositories you wish to modify
+- `GIT_USERNAME` (required) - your Github username
+- `GIT_PASSWORD` (required) - Github personal access token that grants write access to the specified repositories
 
-Installation
-============
-```
-pip install gordian
-```
-
-Docker image
-============
-```
-docker run --rm -it argoprojlabs/gordian:latest -h
-usage: gordian [-h] [-c CONFIG_FILE] --pr PR_MESSAGE [-v] [-d] [-M | -m | -p]
-                -s SEARCH -r REPLACE
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -c CONFIG_FILE, --config CONFIG_FILE
-                        Config file path. (default: config.yaml)
-  --pr PR_MESSAGE       Pull request name. (default: None)
-  -v, --verbose
-  -d, --dry-run         Enable dry run mode (default: False)
-  -M, --major           Bump the major version. (default: False)
-  -m, --minor           Bump the minor version. (default: False)
-  -p, --patch           Bump the patch version. (default: False)
-  -s SEARCH, --search SEARCH
-                        The string to search for in config files. (default:
-                        None)
-  -r REPLACE, --replace REPLACE
-                        The string that will replace instances of the searched
-                        string. (default: None)
-```
-
-Development
-===========
-The simplest way to hit the ground running if you want to contribute with code is using docker, launch a python container:
+# Development
+The simplest way to hit the ground running if you want to contribute with code is using docker, launch a python container
 ```
 localhost$ docker run --rm -it  -v $(pwd):$(pwd) -w $(pwd) python:3.7-stretch bash
 ```
 
-Install the project and test dependencies in developer mode:
+Install the project and test dependencies in developer mode
 ```
 container# pip install -e .[test]
 ```
 
-Run the tests:
+Run the tests
 ```
 container# pytest
 =========================================== test session starts ============================================
@@ -117,4 +120,9 @@ collected 33 items
 ================================== 33 passed, 2 warnings in 1.73 seconds ===================================
 ```
 
-Happy hacking!!
+# Support
+
+## Maintainers
+- [Rene Martin](https://github.com/agarfu)
+- [Jonathan Nevelson](https://github.com/jnevelson)
+- [Corey Caverly](https://github.com/coreycaverly)
