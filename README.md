@@ -122,7 +122,8 @@ collected 33 items
 
 # Support
 
-## Maintainers
+## Contributors
 - [Rene Martin](https://github.com/agarfu)
 - [Jonathan Nevelson](https://github.com/jnevelson)
 - [Corey Caverly](https://github.com/coreycaverly)
+- [Sara Blumin](https://github.com/sblumin)
