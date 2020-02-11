@@ -18,6 +18,7 @@ class TestSearchAndReplaceTransformation(unittest.TestCase):
         self.mock_branches = MagicMock()
         self.mock_repo.get_branches.return_value = self.mock_branches
         mock_git.get_repo.return_value = self.mock_repo
+        self.mock_repo.get_contents.return_value = []
         self.instance = Repo(None, branch='', git=mock_git, files=[])
         self.instance.branch_exists = False
         f = open('./tests/fixtures/content.yaml', 'r')

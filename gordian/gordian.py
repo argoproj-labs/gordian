@@ -130,7 +130,7 @@ def apply_transformations(args, transformations):
             repo.bump_version(args.major, args.minor, args.patch, args.dry_run)
             if not args.dry_run:
                 try:
-                    repo.repo.create_pull(args.pr_message, '', 'master', repo.branch_name)
+                    repo._repo.create_pull(args.pr_message, '', 'master', repo.branch_name)
                     logger.info(f'PR created: {args.pr_message}. Branch: {repo.branch_name}')
                 except GithubException as e:
                     logger.info(f'PR already exists for {repo.branch_name}')

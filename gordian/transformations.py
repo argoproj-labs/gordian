@@ -31,7 +31,7 @@ class SearchAndReplace(Transformation):
     def run(self):
         changes = False
         for search, replace in self.changesets:
-            for file in self.repo.files:
+            for file in self.repo.get_files():
                 file_str = file.decoded_content
                 if not self.is_word_found(file_str, search):
                     logger.debug(f"Ignoring {file}")
@@ -54,7 +54,7 @@ class JsonPatch(Transformation):
 
     def run(self):
         changes = False
-        for f in self.repo.files:
+        for f in self.repo.get_files():
             file_changes = False
             if not re.match(self.file_regexp, f.path):
                 continue
