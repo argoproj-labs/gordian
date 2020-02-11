@@ -30,7 +30,7 @@ class TestGordian(unittest.TestCase):
             instance.dirty = True
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(False, False, False, False), call().bump_version(False, False, False, False)], any_order=True)
-            RepoMock.assert_has_calls([call().repo.create_pull('test', '', 'master', ANY), call().repo.create_pull('test', '', 'master', ANY)], any_order=True)
+            RepoMock.assert_has_calls([call()._repo.create_pull('test', '', 'master', ANY), call()._repo.create_pull('test', '', 'master', ANY)], any_order=True)
 
     def test_apply_transformations_with_changes_dry_run(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation', ) as TransformationMockClass:
