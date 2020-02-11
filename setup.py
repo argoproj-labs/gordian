@@ -3,7 +3,7 @@ import setuptools
 setup_reqs = ["pytest-cov", "pytest-runner", "flake8"]
 setuptools.setup(
     name="gordian",
-    version="1.1.0",
+    version="1.1.1",
     author="Intuit",
     author_email="cg-sre@intuit.com",
     description="A tool to search and replace YAML files in a Git repo",
@@ -14,7 +14,7 @@ setuptools.setup(
         'test': setup_reqs
     },
     tests_require=setup_reqs,
-    packages=["gordian"],
+    packages=['gordian', 'gordian.files'],
     entry_points={
         'console_scripts': [
             'gordian = gordian.gordian:main',
