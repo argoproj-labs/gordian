@@ -43,3 +43,9 @@ class TestRepo(unittest.TestCase):
     def test_get_existing_object(self):
         contents = self.repo.get_objects('/content.yaml')
         assert(isinstance(contents, YamlFile))
+        
+    def test_new_files_object(self):
+        self.assertEquals(len(self.repo.files), 1)
+        repo_two = Repo('test_two', github_api_url='https://test.github.com', git=self.mock_git)
+        self.assertEquals(len(repo_two.files), 0)
+        

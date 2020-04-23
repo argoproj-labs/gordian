@@ -12,7 +12,7 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=[]):
+    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -24,6 +24,9 @@ class Repo:
             else:
                 git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
 
+        if files is None:
+            files = []
+            
         self.repo_name = repo_name
         self._repo = git.get_repo(repo_name)
         self.files = files
