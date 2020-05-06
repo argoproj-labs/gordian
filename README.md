@@ -75,7 +75,7 @@ class PreScale(Transformation):
 
                 if obj['spec']['minReplicas'] != obj['spec']['maxReplicas']:
                     min_replicas = obj['spec']['minReplicas']
-                    obj['spec']['maxReplicas'] = obj['spec']['minReplicas']
+                    obj['spec']['maxReplicas'] = min_replicas
 
             if min_replicas is not None:
                 objects.save(f'Setting maxRelicas = minReplicas = {min_replicas}', self.dry_run)
