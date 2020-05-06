@@ -63,7 +63,7 @@ class Repo:
     def get_files(self):
         if not self.files:
             logger.debug(f'Getting repo content')
-            contents = self._repo.get_contents('/')
+            contents = self._repo.get_contents('')
             while contents:
                 file_content = contents.pop(0)
                 if file_content.path == 'version':
