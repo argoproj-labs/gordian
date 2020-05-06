@@ -66,16 +66,19 @@ class PreScale(Transformation):
 
     def run(self):
         for env in self.environments:
-            file = self.repo.get_objects(f'overlays/{self.environments}/envconfig-values.yaml')
+            objects = self.repo.get_objects(f'overlays/{env}/envconfig-values.yaml')
 
-            for obj in file:
+            min_replicas = None
+            for obj in objects:
                 if obj['kind'] != 'HorizontalPodAutoscaler':
                     continue
 
                 if obj['spec']['minReplicas'] != obj['spec']['maxReplicas']:
-                    obj['spec']['maxReplicas'] = obj['spec']['minReplicas']
+                    min_replicas = obj['spec']['minReplicas']
+                    obj['spec']['maxReplicas'] = min_replicas
 
-            file.save(f'Setting maxRelicas = minReplicas = {obj['spec']['minReplicas']}', self.dry_run)
+            if min_replicas is not None:
+                objects.save(f'Setting maxRelicas = minReplicas = {min_replicas}', self.dry_run)
 
 
 if __name__ == '__main__':
@@ -84,7 +87,8 @@ if __name__ == '__main__':
         '-e', '--environments',
         required=False,
         dest='environments',
-        default='prd-.*',
+        default=['prd'],
+        action='append',
         help='Environments to update.'
     )
     args = parser.parse_args(sys.argv[1:])

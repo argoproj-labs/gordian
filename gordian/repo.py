@@ -17,17 +17,21 @@ class Repo:
             self.github_api_url = BASE_URL
         else:
             self.github_api_url = github_api_url
+        logger.debug(f'Github api url: {self.github_api_url}')
 
         if git is None:
             if "GIT_TOKEN" in os.environ:
+                logger.debug('Using git token')
                 git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_TOKEN'])
             else:
+                logger.debug('Using git username and password')
                 git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
 
         if files is None:
             files = []
             
         self.repo_name = repo_name
+        logger.debug(f'Repo name: {self.repo_name}')
         self._repo = git.get_repo(repo_name)
         self.files = files
         self.version_file = None
@@ -38,6 +42,7 @@ class Repo:
             self.branch_name = f"refs/heads/{branch}"
         else:
             self.branch_name = f"refs/heads/{datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S.%f')}"
+        logger.debug(f'Branch name for this changes: {self.branch_name}')
 
     def get_objects(self, filename, klass=None):
         file = self.find_file(filename)
@@ -57,7 +62,8 @@ class Repo:
 
     def get_files(self):
         if not self.files:
-            contents = self._repo.get_contents("")
+            logger.debug(f'Getting repo content')
+            contents = self._repo.get_contents('')
             while contents:
                 file_content = contents.pop(0)
                 if file_content.path == 'version':
@@ -77,6 +83,7 @@ class Repo:
     def make_branch(self):
         sb = self._repo.get_branch('master')
         try:
+            logger.debug(f'Creating branch {self.branch_name}')
             ref = self._repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
         except GithubException as e:
             print(f"Branch {self.branch_name} already exists in github")
@@ -118,6 +125,7 @@ class Repo:
         if not self.branch_exists:
             self.make_branch()
 
+        logger.debug(f'Updating file {repo_file.path}')
         self._repo.update_file(
             repo_file.path,
             message,
@@ -136,6 +144,7 @@ class Repo:
         if not self.branch_exists:
             self.make_branch()
 
+        logger.debug(f'Creating file {path}')
         self._repo.create_file(
             path,
             message,
@@ -153,6 +162,7 @@ class Repo:
         if not self.branch_exists:
             self.make_branch()
 
+        logger.debug(f'Deleting file {file.path}')
         self._repo.delete_file(
             file.path,
             message,
