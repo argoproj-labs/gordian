@@ -3,7 +3,7 @@ from github import GithubException
 import datetime
 import logging
 import os
-from gordian.files import YamlFile, JsonFile
+from gordian.files import *
 
 logger = logging.getLogger(__name__)
 
@@ -29,12 +29,13 @@ class Repo:
 
         if files is None:
             files = []
-            
+
         self.repo_name = repo_name
         logger.debug(f'Repo name: {self.repo_name}')
         self._repo = git.get_repo(repo_name)
         self.files = files
         self.version_file = None
+        self.changelog_file = None
         self.branch_exists = False
         self.dirty = False
 
@@ -53,12 +54,17 @@ class Repo:
         if klass:
             return klass(file, self)
 
+        if filename == 'CHANGELOG.md':
+            return ChangelogFile(file, self)
+
         _, ext = os.path.splitext(filename)
 
         if ext in ('.yaml', '.yml'):
             return YamlFile(file, self)
-        if ext in ('.json'):
+        if ext == '.json':
             return JsonFile(file, self)
+        if ext == '.md':
+            return MarkdownFile(file, self)
 
     def get_files(self):
         if not self.files:
@@ -68,7 +74,7 @@ class Repo:
                 file_content = contents.pop(0)
                 if file_content.path == 'version':
                     self.version_file = file_content
-                if file_content.type == 'dir':
+                elif file_content.type == 'dir':
                     contents.extend(self._repo.get_contents(file_content.path))
                 else:
                     self.files.append(file_content)
@@ -89,22 +95,23 @@ class Repo:
             print(f"Branch {self.branch_name} already exists in github")
         self.branch_exists = True
 
-    def bump_version(self, bump_major, bump_minor, bump_patch, dry_run=False):
-        if not bump_major and not bump_minor and not bump_patch:
+    def bump_version(self, semver_label, dry_run=False):
+        if semver_label is None:
             return
+
         if self.version_file is None:
             logger.info('There is no version file in the repository, skipping bumping')
             return
 
         version = self.version_file.decoded_content.decode('utf-8')
         major, minor, patch = version.split('.')
-        if bump_major:
+        if semver_label == 'major':
             major = str(int(major) + 1)
             minor = patch = '0'
-        elif bump_minor:
+        elif semver_label == 'minor':
             minor = str(int(minor) + 1)
             patch = '0'
-        elif bump_patch:
+        elif semver_label == 'patch':
             patch = str(int(patch) + 1)
         new_version = '.'.join([major, minor, patch])
         logger.info(f'Bumping version {new_version}')
@@ -114,6 +121,15 @@ class Repo:
             'Bumping version',
             dry_run
         )
+        return new_version
+
+    def update_changelog(self, new_version, changelog_entry):
+        changelog = self.get_objects('CHANGELOG.md')
+        if changelog is None:
+            logger.info('There is no CHANGELOG.md file, skipping update')
+            return
+
+
 
     def update_file(self, repo_file, content, message, dry_run=False):
         self.dirty = True

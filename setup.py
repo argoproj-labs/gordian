@@ -1,12 +1,12 @@
 import setuptools
 
-setup_reqs = ["pytest-cov", "pytest-runner", "flake8"]
+setup_reqs = ['pytest-cov', 'pytest-runner', 'flake8']
 setuptools.setup(
     name="gordian",
-    version="1.1.4",
+    version="1.2.0",
     author="Intuit",
     author_email="cg-sre@intuit.com",
-    description="A tool to search and replace YAML files in a Git repo",
+    description="A tool to search and replace files in a Git repo",
     url="https://github.com/argoproj-labs/gordian",
     install_requires=['pygithub', 'pyyaml', 'jsonpatch', 'deepdiff'],
     setup_requires=setup_reqs,

@@ -71,23 +71,32 @@ def get_basic_parser():
         dest='branch',
         help='Branch name to use'
     )
+    parser.add_argument(
+        '--force-changelog',
+        required=False,
+        dest='force_changelog',
+        help='Fail if changelog does not exist or cannot be parsed'
+    )
     bumpers = parser.add_mutually_exclusive_group(required=False)
     bumpers.add_argument(
             '-M', '--major',
-            dest='major',
-            action='store_true',
+            dest='semver_label',
+            action='store_const',
+            const='major',
             help='Bump the major version.'
         )
     bumpers.add_argument(
             '-m', '--minor',
-            dest='minor',
-            action='store_true',
+            dest='semver_label',
+            action='store_const',
+            const='minor',
             help='Bump the minor version.'
         )
     bumpers.add_argument(
             '-p', '--patch',
-            dest='patch',
-            action='store_true',
+            dest='semver_label',
+            action='store_const',
+            const='patch',
             help='Bump the patch version.'
         )
     return parser
@@ -127,7 +136,8 @@ def apply_transformations(args, transformations):
         for transformation in transformations:
             transformation(args, repo).run()
         if repo.dirty:
-            repo.bump_version(args.major, args.minor, args.patch, args.dry_run)
+            repo.bump_version(args.semver_label, args.dry_run)
+
             if not args.dry_run:
                 try:
                     repo._repo.create_pull(args.pr_message, '', 'master', repo.branch_name)
