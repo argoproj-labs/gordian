@@ -1,16 +1,19 @@
 from . import MarkdownFile
 import re
+from datetime import datetime
 
-ENTRY_REGEX = '.*\[([0-9]*\.[0-9]*\.[0-9]*)\] - [0-9]{4}-[0-9]{1,2}-[0-9]+'
+CHANGELOG_ENTRY_REGEX = '.*\[([0-9]*\.[0-9]*\.[0-9]*)\] - [0-9]{4}-[0-9]{1,2}-[0-9]+'
 
 class ChangelogFile(MarkdownFile):
 
     def __init__(self, github_file, repo):
-        self.header = []
+        self.changelog_entry_types = [ 'added', 'updated', 'removed' ]
+        self._generate_interface_methods()
         super().__init__(github_file, repo)
 
     def _load_objects(self):
         string_lines = [line.decode('utf-8') for line in super()._load_objects()]
+        self.header = []
         changelog_entries = []
         changelog_entry_block = []
         empty_previous_line = False
@@ -20,7 +23,8 @@ class ChangelogFile(MarkdownFile):
         for i, line in enumerate(string_lines):
             # set on previous iteration
             if empty_previous_line:
-                if re.search(ENTRY_REGEX, line):
+                if re.search(CHANGELOG_ENTRY_REGEX, line):
+
                     # reached the end of the header (start of the changelog)
                     if not self.header:
                         self.header = string_lines[0:i]
@@ -56,10 +60,48 @@ class ChangelogFile(MarkdownFile):
         for o in self.objects:
             blocks.append('\n'.join(o))
 
-        return '\n'.join(
-            [
-                '\n'.join(self.header),
-                '\n'.join(blocks),
-                '\n'.join(self.footer)
-            ]
-        )
+        entries = self._format_new_changelog_entry()
+
+        lines = ['\n'.join(self.header)]
+        if entries:
+            lines.append('\n'.join(entries))
+            lines.append('')
+        lines.append('\n'.join(blocks))
+        lines.append('\n'.join(self.footer))
+
+        return '\n'.join(lines)
+
+    def _format_new_changelog_entry(self):
+        lines = []
+        for changelog_entry_type in self.changelog_entry_types:
+            lines += self._format_list_entry(changelog_entry_type)
+
+        if lines:
+            header = f"## [{self.repo.new_version}] - {datetime.now().strftime('%Y-%m-%d')}"
+            lines.insert(0, header)
+        return lines
+
+    def _format_list_entry(self, list_type):
+        lines = []
+        entries = getattr(self, f'_{list_type}')
+        for entry, ticket in entries:
+            if ticket:
+                line = f'{entry} [{ticket}]'
+            else:
+                line = entry
+            lines.append(f'- {line}')
+
+        if lines:
+            header = f'### {list_type.capitalize()}'
+            lines.insert(0, header)
+        return lines
+
+    def _generate_interface_methods(self):
+        for changelog_entry_type in self.changelog_entry_types:
+            internal_store = f'_{changelog_entry_type}'
+
+            def fn(self, entry, ticket=None, store=internal_store):
+                getattr(self, store).append((entry, ticket))
+
+            setattr(ChangelogFile, changelog_entry_type, fn)
+            setattr(ChangelogFile, internal_store, [])

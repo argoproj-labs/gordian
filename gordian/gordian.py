@@ -132,12 +132,11 @@ def apply_transformations(args, transformations):
     data = config.get_data()
     for repo_name in data:
         logger.info(f'Processing repo: {repo_name}')
-        repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch)
+        repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label)
         for transformation in transformations:
             transformation(args, repo).run()
         if repo.dirty:
-            repo.bump_version(args.semver_label, args.dry_run)
-
+            repo.bump_version(args.dry_run)
             if not args.dry_run:
                 try:
                     repo._repo.create_pull(args.pr_message, '', 'master', repo.branch_name)
