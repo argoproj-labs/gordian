@@ -18,7 +18,7 @@ class ChangelogFile(MarkdownFile):
         changelog_entry_block = []
         empty_previous_line = False
         inside_changelog_entry_block = False
-        footer_start = 0
+        footer_start = None
 
         for i, line in enumerate(string_lines):
             # set on previous iteration
@@ -51,7 +51,10 @@ class ChangelogFile(MarkdownFile):
             empty_previous_line = not line
 
         changelog_entries.append(changelog_entry_block)
-        self.footer = string_lines[footer_start:len(string_lines) - 1]
+        if footer_start:
+            self.footer = string_lines[footer_start:len(string_lines) - 1]
+        else:
+            self.footer =  []
 
         return changelog_entries
 
@@ -77,7 +80,7 @@ class ChangelogFile(MarkdownFile):
             lines += self._format_list_entry(changelog_entry_type)
 
         if lines:
-            header = f"## [{self.repo.new_version}] - {datetime.now().strftime('%Y-%m-%d')}"
+            header = f"## [{self.repo.new_version}] - {self._format_date()}"
             lines.insert(0, header)
         return lines
 
@@ -105,3 +108,6 @@ class ChangelogFile(MarkdownFile):
 
             setattr(ChangelogFile, changelog_entry_type, fn)
             setattr(ChangelogFile, internal_store, [])
+
+    def _format_date(self):
+        return datetime.now().strftime('%Y-%m-%d')

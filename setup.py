@@ -1,6 +1,6 @@
 import setuptools
 
-setup_reqs = ['pytest-cov', 'pytest-runner', 'flake8']
+setup_reqs = ['pytest', 'pytest-cov', 'pytest-runner', 'flake8']
 setuptools.setup(
     name="gordian",
     version="1.2.0",
