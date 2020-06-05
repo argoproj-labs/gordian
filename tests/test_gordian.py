@@ -16,20 +16,21 @@ class TestGordian(unittest.TestCase):
             self.pr_message = 'test'
             self.branch = 'test'
             self.github_api = None
+            self.semver_label = None
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
             instance = RepoMock.return_value
             instance.dirty = False
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
-            RepoMock.assert_has_calls([call('testOrg/TestService1', github_api_url=None, branch='test'), call('testOrg/TestService2', github_api_url=None, branch='test')], any_order=True)
+            RepoMock.assert_has_calls([call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None), call('testOrg/TestService2', github_api_url=None, branch='test', semver_label=None)], any_order=True)
 
     def test_apply_transformations_with_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation', ) as TransformationMockClass:
             instance = RepoMock.return_value
             instance.dirty = True
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
-            RepoMock.assert_has_calls([call().bump_version(False, False, False, False), call().bump_version(False, False, False, False)], any_order=True)
+            RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
             RepoMock.assert_has_calls([call()._repo.create_pull('test', '', 'master', ANY), call()._repo.create_pull('test', '', 'master', ANY)], any_order=True)
 
     def test_apply_transformations_with_changes_dry_run(self):
@@ -37,5 +38,5 @@ class TestGordian(unittest.TestCase):
             instance = RepoMock.return_value
             instance.dirty = True
             apply_transformations(TestGordian.Args(dry_run=True), [TransformationMockClass])
-            RepoMock.assert_has_calls([call().bump_version(False, False, False, True), call().bump_version(False, False, False, True)], any_order=True)
+            RepoMock.assert_has_calls([call().bump_version(True), call().bump_version(True)], any_order=True)
             self.assertNotIn(call().repo.create_pull('test', '', 'master', ANY), RepoMock.mock_calls)

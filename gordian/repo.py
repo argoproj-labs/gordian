@@ -3,7 +3,7 @@ from github import GithubException
 import datetime
 import logging
 import os
-from gordian.files import YamlFile, JsonFile
+from gordian.files import *
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None):
+    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None, semver_label=None):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -29,14 +29,16 @@ class Repo:
 
         if files is None:
             files = []
-            
+
         self.repo_name = repo_name
         logger.debug(f'Repo name: {self.repo_name}')
         self._repo = git.get_repo(repo_name)
         self.files = files
         self.version_file = None
+        self.changelog_file = None
         self.branch_exists = False
         self.dirty = False
+        self.semver_label = semver_label
 
         if branch:
             self.branch_name = f"refs/heads/{branch}"
@@ -46,6 +48,9 @@ class Repo:
 
     def get_objects(self, filename, klass=None):
         file = self.find_file(filename)
+
+        if filename == 'CHANGELOG.md':
+            return self.changelog
 
         if file is None:
             raise FileNotFoundError
@@ -57,21 +62,27 @@ class Repo:
 
         if ext in ('.yaml', '.yml'):
             return YamlFile(file, self)
-        if ext in ('.json'):
+        if ext == '.json':
             return JsonFile(file, self)
+        if ext == '.md':
+            return MarkdownFile(file, self)
 
     def get_files(self):
         if not self.files:
             logger.debug(f'Getting repo content')
             contents = self._repo.get_contents('')
             while contents:
-                file_content = contents.pop(0)
-                if file_content.path == 'version':
-                    self.version_file = file_content
-                if file_content.type == 'dir':
-                    contents.extend(self._repo.get_contents(file_content.path))
+                file = contents.pop(0)
+                if file.path == 'version':
+                    self.version_file = file
+                elif file.path == 'CHANGELOG.md':
+                    self.changelog = ChangelogFile(file, self)
+                elif file.type == 'dir':
+                    contents.extend(self._repo.get_contents(file.path))
                 else:
-                    self.files.append(file_content)
+                    self.files.append(file)
+
+        self._get_new_version()
 
         return self.files
 
@@ -89,29 +100,12 @@ class Repo:
             print(f"Branch {self.branch_name} already exists in github")
         self.branch_exists = True
 
-    def bump_version(self, bump_major, bump_minor, bump_patch, dry_run=False):
-        if not bump_major and not bump_minor and not bump_patch:
-            return
-        if self.version_file is None:
-            logger.info('There is no version file in the repository, skipping bumping')
-            return
-
-        version = self.version_file.decoded_content.decode('utf-8')
-        major, minor, patch = version.split('.')
-        if bump_major:
-            major = str(int(major) + 1)
-            minor = patch = '0'
-        elif bump_minor:
-            minor = str(int(minor) + 1)
-            patch = '0'
-        elif bump_patch:
-            patch = str(int(patch) + 1)
-        new_version = '.'.join([major, minor, patch])
-        logger.info(f'Bumping version {new_version}')
+    def bump_version(self, dry_run=False):
+        logger.info(f'Bumping version {self.new_version}')
         self.update_file(
             self.version_file,
-            new_version,
-            'Bumping version',
+            self.new_version,
+            f'Bumping version to {self.new_version}',
             dry_run
         )
 
@@ -169,3 +163,23 @@ class Repo:
             file.sha,
             branch=self.branch_name
         )
+
+    def _get_new_version(self):
+        if self.semver_label is None:
+            return
+
+        if self.version_file is None:
+            logger.info('There is no version file in the repository, skipping bumping')
+            return
+
+        version = self.version_file.decoded_content.decode('utf-8')
+        major, minor, patch = version.split('.')
+        if self.semver_label == 'major':
+            major = str(int(major) + 1)
+            minor = patch = '0'
+        elif self.semver_label == 'minor':
+            minor = str(int(minor) + 1)
+            patch = '0'
+        elif self.semver_label == 'patch':
+            patch = str(int(patch) + 1)
+        self.new_version = '.'.join([major, minor, patch])

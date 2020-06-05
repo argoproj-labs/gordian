@@ -31,6 +31,11 @@ class NullTest(Transformation):
 
         file.save('Remove CPU limit', self.dry_run)
 
+        self.repo.changelog.added('added a test', 'SRE-1234')
+        self.repo.changelog.updated('updated something')
+        self.repo.changelog.removed('removed something', 'SRE-6245')
+        self.repo.changelog.save('test', self.dry_run)
+
 def main():
     parser = get_basic_parser()
     parser.add_argument(

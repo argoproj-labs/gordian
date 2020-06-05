@@ -80,6 +80,8 @@ class PreScale(Transformation):
             if min_replicas is not None:
                 objects.save(f'Setting maxRelicas = minReplicas = {min_replicas}', self.dry_run)
 
+        self.repo.changelog.added('Set max replicas equal to min replicas', 'TICKET-1234')
+        self.repo.changelog.save('Update changelog', self.dry_run)
 
 if __name__ == '__main__':
     parser = get_basic_parser()
@@ -101,7 +103,9 @@ if __name__ == '__main__':
 - `GIT_PASSWORD` (required) - Github personal access token that grants write access to the specified repositories
 
 # Development
-The simplest way to hit the ground running if you want to contribute with code is using docker, launch a python container
+The simplest way to hit the ground running if you want to contribute with code is using docker.
+
+Launch a python container
 ```
 localhost$ docker run --rm -it  -v $(pwd):$(pwd) -w $(pwd) python:3.7-stretch bash
 ```
