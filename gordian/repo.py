@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 BASE_URL = 'https://api.github.com'
 
 
-class Repo:
+class Repo(object):
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None, semver_label=None):
+    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None, semver_label=None, target_branch='master'):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -39,12 +39,18 @@ class Repo:
         self.branch_exists = False
         self.dirty = False
         self.semver_label = semver_label
+        self.set_target_branch(target_branch)
 
+        logger.debug(f'Target ref: {target_branch}')
         if branch:
             self.branch_name = f"refs/heads/{branch}"
         else:
             self.branch_name = f"refs/heads/{datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S.%f')}"
         logger.debug(f'Branch name for this changes: {self.branch_name}')
+
+    def set_target_branch(self, branch):
+        self.target_branch = branch
+        self.target_ref = f"refs/heads/{self.target_branch}"
 
     def get_objects(self, filename, klass=None):
         file = self.find_file(filename)
@@ -70,7 +76,7 @@ class Repo:
     def get_files(self):
         if not self.files:
             logger.debug(f'Getting repo content')
-            contents = self._repo.get_contents('')
+            contents = self._repo.get_contents('', self.target_ref)
             while contents:
                 file = contents.pop(0)
                 if file.path == 'version':
@@ -78,7 +84,7 @@ class Repo:
                 elif file.path == 'CHANGELOG.md':
                     self.changelog = ChangelogFile(file, self)
                 elif file.type == 'dir':
-                    contents.extend(self._repo.get_contents(file.path))
+                    contents.extend(self._repo.get_contents(file.path, self.target_ref))
                 else:
                     self.files.append(file)
 
@@ -92,7 +98,7 @@ class Repo:
                 return file
 
     def make_branch(self):
-        sb = self._repo.get_branch('master')
+        sb = self._repo.get_branch(self.target_branch)
         try:
             logger.debug(f'Creating branch {self.branch_name}')
             ref = self._repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
