@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 BASE_URL = 'https://api.github.com'
 
 
-class Repo(object):
+class Repo:
 
     def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None, semver_label=None, target_branch='master'):
         if github_api_url is None:
