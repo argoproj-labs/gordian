@@ -1,7 +1,7 @@
 import unittest
 import pytest
 from gordian.repo import Repo
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 from gordian.files import YamlFile
 from .utils import Utils
 
@@ -26,7 +26,7 @@ class TestRepo(unittest.TestCase):
         mock_branch.commit.sha = "5e69ff00a3be0a76b13356c6ff42af79ff469ef3"
         self.instance.make_branch()
         self.assertTrue(self.instance.branch_exists)
-        self.mock_repo.get_branch.assert_called_once()
+        self.mock_repo.get_branch.assert_called_once_with('master')
         self.mock_repo.create_git_ref.assert_called_once()
 
     def test_default_github_url(self):
@@ -49,3 +49,12 @@ class TestRepo(unittest.TestCase):
         repo_two = Repo('test_two', github_api_url='https://test.github.com', git=self.mock_git)
         self.assertEquals(len(repo_two.files), 0)
         
+    def test_get_files(self):
+        self.repo.set_target_branch('target')
+        self.repo.files = []
+        self.repo._repo = MagicMock()
+        repository_file = MagicMock(path='afile.txt', type='not_dir')
+        self.repo._repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
+        self.repo.get_files()
+        self.repo._repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
+        self.assertEquals(self.repo.files, [repository_file])

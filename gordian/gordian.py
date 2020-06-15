@@ -72,6 +72,13 @@ def get_basic_parser():
         help='Branch name to use'
     )
     parser.add_argument(
+        '-t', '--target-branch',
+        required=False,
+        default='master',
+        dest='target_branch',
+        help='Target branch'
+    )
+    parser.add_argument(
         '--force-changelog',
         required=False,
         dest='force_changelog',
@@ -126,20 +133,24 @@ def create_parser(args):
     return args
 
 
-def apply_transformations(args, transformations):
+def apply_transformations(args, transformations, pr_created_callback=None):
     config = Config(args.config_file)
+    transform(args, transformations, config.get_data(), pr_created_callback=pr_created_callback)
 
-    data = config.get_data()
-    for repo_name in data:
+def transform(args, transformations, repositories, pr_created_callback):
+    for repo_name in repositories:
         logger.info(f'Processing repo: {repo_name}')
-        repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label)
+        repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label, target_branch=args.target_branch)
         for transformation in transformations:
             transformation(args, repo).run()
         if repo.dirty:
             repo.bump_version(args.dry_run)
             if not args.dry_run:
                 try:
-                    repo._repo.create_pull(args.pr_message, '', 'master', repo.branch_name)
+                    pull_request = repo._repo.create_pull(args.pr_message, '', args.target_branch, repo.branch_name)
+                    if pr_created_callback is not None:
+                        logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')
+                        pr_created_callback(repo_name, pull_request)
                     logger.info(f'PR created: {args.pr_message}. Branch: {repo.branch_name}')
                 except GithubException as e:
                     logger.info(f'PR already exists for {repo.branch_name}')
