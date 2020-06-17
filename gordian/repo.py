@@ -12,28 +12,30 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, git=None, files=None, semver_label=None, target_branch='master'):
+    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master'):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
             self.github_api_url = github_api_url
-        logger.debug(f'Github api url: {self.github_api_url}')
 
-        if git is None:
+        if github is not None:
+            self._github = github
+        else:
             if "GIT_TOKEN" in os.environ:
                 logger.debug('Using git token')
-                git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_TOKEN'])
+                self._github = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_TOKEN'])
             else:
                 logger.debug('Using git username and password')
-                git = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
+                self._github = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
 
         if files is None:
             files = []
+        self.files = files
 
         self.repo_name = repo_name
-        logger.debug(f'Repo name: {self.repo_name}')
-        self._repo = git.get_repo(repo_name)
-        self.files = files
+        self._original_repo = self._github.get_repo(repo_name)
+        self._forked_repo = self._original_repo.create_fork()
+
         self.version_file = None
         self.changelog_file = None
         self.branch_exists = False
@@ -43,11 +45,14 @@ class Repo:
         self.target_branch = None
         self.set_target_branch(target_branch)
 
-        logger.debug(f'Target ref: {target_branch}')
         if branch:
             self.branch_name = f"refs/heads/{branch}"
         else:
             self.branch_name = f"refs/heads/{datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S.%f')}"
+
+        logger.debug(f'Github api url: {self.github_api_url}')
+        logger.debug(f'Repo name: {self.repo_name}')
+        logger.debug(f'Target ref: {self.target_branch}')
         logger.debug(f'Branch name for this changes: {self.branch_name}')
 
     def set_target_branch(self, branch):
@@ -83,7 +88,7 @@ class Repo:
     def get_files(self):
         if not self.files:
             logger.debug(f'Getting repo content')
-            contents = self._repo.get_contents('', self.target_ref)
+            contents = self._forked_repo.get_contents('', self.target_ref)
             while contents:
                 file = contents.pop(0)
                 if file.path == 'version':
@@ -91,7 +96,7 @@ class Repo:
                 elif file.path == 'CHANGELOG.md':
                     self.changelog = ChangelogFile(file, self)
                 elif file.type == 'dir':
-                    contents.extend(self._repo.get_contents(file.path, self.target_ref))
+                    contents.extend(self._forked_repo.get_contents(file.path, self.target_ref))
                 else:
                     self.files.append(file)
 
@@ -105,10 +110,10 @@ class Repo:
                 return file
 
     def make_branch(self):
-        sb = self._repo.get_branch(self.target_branch)
+        sb = self._forked_repo.get_branch(self.target_branch)
         try:
             logger.debug(f'Creating branch {self.branch_name}')
-            ref = self._repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
+            ref = self._forked_repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
         except GithubException as e:
             print(f"Branch {self.branch_name} already exists in github")
         self.branch_exists = True
@@ -136,7 +141,7 @@ class Repo:
             self.make_branch()
 
         logger.debug(f'Updating file {repo_file.path}')
-        self._repo.update_file(
+        self._forked_repo.update_file(
             repo_file.path,
             message,
             content,
@@ -155,7 +160,7 @@ class Repo:
             self.make_branch()
 
         logger.debug(f'Creating file {path}')
-        self._repo.create_file(
+        self._forked_repo.create_file(
             path,
             message,
             contents,
@@ -173,12 +178,22 @@ class Repo:
             self.make_branch()
 
         logger.debug(f'Deleting file {file.path}')
-        self._repo.delete_file(
+        self._forked_repo.delete_file(
             file.path,
             message,
             file.sha,
             branch=self.branch_name
         )
+
+    def create_pr(self, pr_message, pr_body, target_branch, labels):
+        pr = self._original_repo.create_pull(
+            pr_message,
+            pr_body,
+            target_branch,
+            f'{self._forked_repo.owner.login}:{self.branch_name}'
+        )
+        pr.set_labels(*labels)
+        return pr
 
     def _get_new_version(self):
         if self.semver_label is None:

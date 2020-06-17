@@ -140,7 +140,6 @@ def create_parser(args):
         raise argparse.ArgumentTypeError('Number of search and replace arguments must be the same!')
     return args
 
-
 def apply_transformations(args, transformations, pr_created_callback=None):
     config = Config(args.config_file)
     transform(args, transformations, config.get_data(), pr_created_callback=pr_created_callback)
@@ -156,8 +155,7 @@ def transform(args, transformations, repositories, pr_created_callback):
             repo.bump_version(args.dry_run)
             if not args.dry_run:
                 try:
-                    pull_request = repo._repo.create_pull(args.pr_message, '', args.target_branch, repo.branch_name)
-                    pull_request.set_labels(*args.pr_labels)
+                    pull_request = repo.create_pr(args.pr_message, '', args.target_branch, args.pr_labels)
                     pull_request_urls.append(pull_request.html_url)
                     if pr_created_callback is not None:
                         logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')
@@ -174,7 +172,6 @@ def transform(args, transformations, repositories, pr_created_callback):
 def main():
     args = create_parser(sys.argv[1:])
     apply_transformations(args, [SearchAndReplace])
-
 
 if __name__ == '__main__':
     main()
