@@ -138,6 +138,7 @@ def apply_transformations(args, transformations, pr_created_callback=None):
     transform(args, transformations, config.get_data(), pr_created_callback=pr_created_callback)
 
 def transform(args, transformations, repositories, pr_created_callback):
+    pull_request_urls = []
     for repo_name in repositories:
         logger.info(f'Processing repo: {repo_name}')
         repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label, target_branch=args.target_branch)
@@ -148,12 +149,17 @@ def transform(args, transformations, repositories, pr_created_callback):
             if not args.dry_run:
                 try:
                     pull_request = repo._repo.create_pull(args.pr_message, '', args.target_branch, repo.branch_name)
+                    pull_request_urls.append(pull_request.html_url)
                     if pr_created_callback is not None:
                         logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')
                         pr_created_callback(repo_name, pull_request)
                     logger.info(f'PR created: {args.pr_message}. Branch: {repo.branch_name}')
                 except GithubException as e:
                     logger.info(f'PR already exists for {repo.branch_name}')
+
+    if pull_request_urls:
+        logger.info('Pull requests')
+        [ logger.info(url) for url in pull_request_urls ]
 
 
 def main():

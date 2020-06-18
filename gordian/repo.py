@@ -38,6 +38,7 @@ class Repo:
         self.changelog_file = None
         self.branch_exists = False
         self.dirty = False
+        self.new_version = None
         self.semver_label = semver_label
         self.target_branch = None
         self.set_target_branch(target_branch)
@@ -113,6 +114,9 @@ class Repo:
         self.branch_exists = True
 
     def bump_version(self, dry_run=False):
+        if self.new_version is None:
+            return
+
         logger.info(f'Bumping version {self.new_version}')
         self.update_file(
             self.version_file,
