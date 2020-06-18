@@ -39,6 +39,7 @@ class Repo:
         self.branch_exists = False
         self.dirty = False
         self.semver_label = semver_label
+        self.target_branch = None
         self.set_target_branch(target_branch)
 
         logger.debug(f'Target ref: {target_branch}')
@@ -49,8 +50,13 @@ class Repo:
         logger.debug(f'Branch name for this changes: {self.branch_name}')
 
     def set_target_branch(self, branch):
+        if branch == self.target_branch:
+            return
+
         self.target_branch = branch
         self.target_ref = f"refs/heads/{self.target_branch}"
+        # Resetting the file cache when we change the branch
+        self.files = []
 
     def get_objects(self, filename, klass=None):
         file = self.find_file(filename)
