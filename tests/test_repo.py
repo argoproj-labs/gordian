@@ -58,3 +58,14 @@ class TestRepo(unittest.TestCase):
         self.repo.get_files()
         self.repo._repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
         self.assertEquals(self.repo.files, [repository_file])
+
+    def test_set_target_branch(self):
+        cached_files = ['cached_file', 'cached_file', 'cached_file']
+        self.repo.files = cached_files.copy()
+        self.repo.set_target_branch('master')
+        self.assertEqual(self.repo.files, cached_files)
+
+        self.repo.set_target_branch('Something different')
+        self.assertEqual(self.repo.files, [])
+        self.assertEqual(self.repo.target_branch, 'Something different')
+        self.assertEqual(self.repo.target_ref, 'refs/heads/Something different')

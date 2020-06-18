@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [1.4.1] - 2020-06-18
+### Fixed
+- set_target_branch was not cleaning the file cache, resulting in gordian not being able to get new files in the new branches.
+
 ## [1.4.0] - 2020-06-17
 ### Added
 - Print out PR URLs at the end of a Gordian run
