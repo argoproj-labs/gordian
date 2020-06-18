@@ -84,6 +84,14 @@ def get_basic_parser():
         dest='force_changelog',
         help='Fail if changelog does not exist or cannot be parsed'
     )
+    parser.add_argument(
+        '-l','--labels',
+        required=False,
+        default=None,
+        nargs='+',
+        dest='pr_labels',
+        help='List of space separated label names you wish to add to your pull request(s)'
+    )
     bumpers = parser.add_mutually_exclusive_group(required=False)
     bumpers.add_argument(
             '-M', '--major',
@@ -149,13 +157,15 @@ def transform(args, transformations, repositories, pr_created_callback):
             if not args.dry_run:
                 try:
                     pull_request = repo._repo.create_pull(args.pr_message, '', args.target_branch, repo.branch_name)
+                    if args.pr_labels:
+                        pull_request.set_labels(*args.pr_labels)
                     pull_request_urls.append(pull_request.html_url)
                     if pr_created_callback is not None:
                         logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')
                         pr_created_callback(repo_name, pull_request)
-                    logger.info(f'PR created: {args.pr_message}. Branch: {repo.branch_name}')
+                    logger.info(f'PR created: {args.pr_message}. Branch: {repo.branch_name}. Labels: {args.pr_labels}')
                 except GithubException as e:
-                    logger.info(f'PR already exists for {repo.branch_name}')
+                    logger.info(f'PR already exists for {repo.branch_name}. Error: {e}')
 
     if pull_request_urls:
         logger.info('Pull requests')

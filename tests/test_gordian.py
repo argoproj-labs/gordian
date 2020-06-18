@@ -18,6 +18,7 @@ class TestGordian(unittest.TestCase):
             self.github_api = None
             self.semver_label = None
             self.target_branch = 'master'
+            self.pr_labels = 'test'
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
