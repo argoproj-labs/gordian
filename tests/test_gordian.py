@@ -1,7 +1,7 @@
 import unittest
 from gordian.config import Config
 from gordian.gordian import apply_transformations
-from unittest.mock import MagicMock, patch, call, Mock, ANY
+from unittest.mock import MagicMock, patch, call, Mock, mock_open, ANY
 
 
 class TestGordian(unittest.TestCase):
@@ -19,6 +19,8 @@ class TestGordian(unittest.TestCase):
             self.semver_label = None
             self.target_branch = 'master'
             self.pr_labels = ['test']
+            self.description = ''
+            self.description_file = None
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
@@ -75,3 +77,15 @@ class TestGordian(unittest.TestCase):
             apply_transformations(gordian_args, [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
             RepoMock.assert_has_calls([call().create_pr('test', '', 'master', ANY), call().create_pr('test', '', 'master', ANY)], any_order=True)
+            self.assertNotIn(call()._repo.create_pull().set_labels(ANY), RepoMock.mock_calls)
+
+    def test_apply_transformations_with_changes_custom_description(self):
+        with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation', ) as TransformationMockClass:
+            instance = RepoMock.return_value
+            instance.dirty = True
+            gordian_args = TestGordian.Args()
+            description = 'Custom file for pr description\n'
+            gordian_args.description_file = './tests/fixtures/pr_description'
+            apply_transformations(gordian_args, [TransformationMockClass])
+            RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
+            RepoMock.assert_has_calls([call().create_pr('test', description, 'master', ANY), call().create_pr('test', description, 'master', ANY)], any_order=True)
