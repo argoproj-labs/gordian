@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org).
 ### Added
 - Added the ability to set labels to sent pull requests using a flag.
 
-
 ## [1.4.1] - 2020-06-18
 ### Fixed
 - set_target_branch was not cleaning the file cache, resulting in gordian not being able to get new files in the new branches.
