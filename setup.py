@@ -3,7 +3,7 @@ import setuptools
 setup_reqs = ['pytest', 'pytest-cov', 'pytest-runner', 'flake8']
 setuptools.setup(
     name="gordian",
-    version="2.1.0",
+    version="2.1.1",
     author="Intuit",
     author_email="cg-sre@intuit.com",
     description="A tool to search and replace files in a Git repo",
