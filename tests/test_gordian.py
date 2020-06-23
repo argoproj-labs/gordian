@@ -18,7 +18,7 @@ class TestGordian(unittest.TestCase):
             self.github_api = None
             self.semver_label = None
             self.target_branch = 'master'
-            self.pr_labels = 'test'
+            self.pr_labels = ['test']
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
@@ -37,6 +37,7 @@ class TestGordian(unittest.TestCase):
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
             RepoMock.assert_has_calls([call()._repo.create_pull('test', '', 'master', ANY), call()._repo.create_pull('test', '', 'master', ANY)], any_order=True)
+            RepoMock.assert_has_calls([call()._repo.create_pull().set_labels('test'), call()._repo.create_pull().set_labels('test')], any_order=True)
 
     def test_apply_transformations_with_changes_dry_run(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation', ) as TransformationMockClass:
@@ -45,6 +46,7 @@ class TestGordian(unittest.TestCase):
             apply_transformations(TestGordian.Args(dry_run=True), [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(True), call().bump_version(True)], any_order=True)
             self.assertNotIn(call().repo.create_pull('test', '', 'master', ANY), RepoMock.mock_calls)
+            self.assertNotIn(call()._repo.create_pull().set_labels('test'), RepoMock.mock_calls)
 
     def test_apply_transformations_with_changes_and_callback(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation', ) as TransformationMockClass:
@@ -56,6 +58,7 @@ class TestGordian(unittest.TestCase):
             apply_transformations(args, [TransformationMockClass], callback_mock)
             pull_request = RepoMock.return_value._repo.create_pull.return_value
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
+            RepoMock.assert_has_calls([call()._repo.create_pull().set_labels('test'), call()._repo.create_pull().set_labels('test')], any_order=True)
             RepoMock.assert_has_calls([
                 call()._repo.create_pull('test', '', 'target_branch', ANY),
                 call()._repo.create_pull('test', '', 'target_branch', ANY)],

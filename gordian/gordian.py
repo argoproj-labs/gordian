@@ -87,7 +87,7 @@ def get_basic_parser():
     parser.add_argument(
         '-l','--labels',
         required=False,
-        default=None,
+        default=[],
         nargs='+',
         dest='pr_labels',
         help='List of space separated label names you wish to add to your pull request(s)'
@@ -157,8 +157,7 @@ def transform(args, transformations, repositories, pr_created_callback):
             if not args.dry_run:
                 try:
                     pull_request = repo._repo.create_pull(args.pr_message, '', args.target_branch, repo.branch_name)
-                    if args.pr_labels:
-                        pull_request.set_labels(*args.pr_labels)
+                    pull_request.set_labels(*args.pr_labels)
                     pull_request_urls.append(pull_request.html_url)
                     if pr_created_callback is not None:
                         logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')
