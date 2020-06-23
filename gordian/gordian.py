@@ -79,12 +79,6 @@ def get_basic_parser():
         help='Target branch'
     )
     parser.add_argument(
-        '--force-changelog',
-        required=False,
-        dest='force_changelog',
-        help='Fail if changelog does not exist or cannot be parsed'
-    )
-    parser.add_argument(
         '-l','--labels',
         required=False,
         default=[],
@@ -114,6 +108,24 @@ def get_basic_parser():
             const='patch',
             help='Bump the patch version.'
         )
+    pr_desc = parser.add_mutually_exclusive_group(required=False)
+    pr_desc.add_argument(
+            '--description',
+            default='',
+            dest='description',
+            help='Description to be passed to the PR.'
+        )
+    pr_desc.add_argument(
+            '--description-file',
+            dest='description_file',
+            help='Local file path for the description to be passed to the PR.'
+        )
+    parser.add_argument(
+        '--force-changelog',
+        required=False,
+        dest='force_changelog',
+        help='Fail if changelog does not exist or cannot be parsed'
+    )
     return parser
 
 
@@ -144,8 +156,15 @@ def apply_transformations(args, transformations, pr_created_callback=None):
     config = Config(args.config_file)
     transform(args, transformations, config.get_data(), pr_created_callback=pr_created_callback)
 
+def get_pr_description(args):
+    if args.description_file is not None:
+        with open(args.description_file,'r') as fh:
+            return fh.read()
+    return args.description
+
 def transform(args, transformations, repositories, pr_created_callback):
     pull_request_urls = []
+    pr_description = get_pr_description(args)
     for repo_name in repositories:
         logger.info(f'Processing repo: {repo_name}')
         repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label, target_branch=args.target_branch)
@@ -155,7 +174,9 @@ def transform(args, transformations, repositories, pr_created_callback):
             repo.bump_version(args.dry_run)
             if not args.dry_run:
                 try:
-                    pull_request = repo.create_pr(args.pr_message, '', args.target_branch, args.pr_labels)
+                    pull_request = repo.create_pr(args.pr_message, pr_description, args.target_branch, args.pr_labels)
+                    pull_request = repo._repo.create_pull(args.pr_message, pr_description, args.target_branch, repo.branch_name)
+                    pull_request.set_labels(*args.pr_labels)
                     pull_request_urls.append(pull_request.html_url)
                     if pr_created_callback is not None:
                         logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')
