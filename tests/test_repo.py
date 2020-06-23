@@ -22,14 +22,12 @@ class TestRepo(unittest.TestCase):
         repo = Repo(None, branch='', github=self.mock_git)
         repo.branch_exists = False
         mock_branch = MagicMock()
-        forked_repo = MagicMock()
-        repo._forked_repo = forked_repo
         self.mock_repo.get_branch.return_value = mock_branch
         mock_branch.commit.sha = "5e69ff00a3be0a76b13356c6ff42af79ff469ef3"
-        repo.make_branch()
+        repo._make_branch()
         self.assertTrue(repo.branch_exists)
-        forked_repo.get_branch.assert_called_once_with('master')
-        forked_repo.create_git_ref.assert_called_once()
+        repo._forked_repo.get_branch.assert_called_once_with('master')
+        repo._forked_repo.create_git_ref.assert_called_once()
 
     def test_default_github_url(self):
         self.assertEqual(self.repo.github_api_url, 'https://api.github.com')
@@ -54,11 +52,11 @@ class TestRepo(unittest.TestCase):
     def test_get_files(self):
         self.repo.set_target_branch('target')
         self.repo.files = []
-        self.repo._forked_repo = MagicMock()
+        self.repo._original_repo = MagicMock()
         repository_file = MagicMock(path='afile.txt', type='not_dir')
-        self.repo._forked_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
+        self.repo._original_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
         self.repo.get_files()
-        self.repo._forked_repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
+        self.repo._original_repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
         self.assertEquals(self.repo.files, [repository_file])
 
     def test_set_target_branch(self):

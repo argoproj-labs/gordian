@@ -3,6 +3,7 @@ from github import GithubException
 import datetime
 import logging
 import os
+import time
 from gordian.files import *
 
 logger = logging.getLogger(__name__)
@@ -34,7 +35,6 @@ class Repo:
 
         self.repo_name = repo_name
         self._original_repo = self._github.get_repo(repo_name)
-        self._forked_repo = self._original_repo.create_fork()
 
         self.version_file = None
         self.changelog_file = None
@@ -88,7 +88,7 @@ class Repo:
     def get_files(self):
         if not self.files:
             logger.debug(f'Getting repo content')
-            contents = self._forked_repo.get_contents('', self.target_ref)
+            contents = self._original_repo.get_contents('', self.target_ref)
             while contents:
                 file = contents.pop(0)
                 if file.path == 'version':
@@ -96,7 +96,7 @@ class Repo:
                 elif file.path == 'CHANGELOG.md':
                     self.changelog = ChangelogFile(file, self)
                 elif file.type == 'dir':
-                    contents.extend(self._forked_repo.get_contents(file.path, self.target_ref))
+                    contents.extend(self._original_repo.get_contents(file.path, self.target_ref))
                 else:
                     self.files.append(file)
 
@@ -109,14 +109,31 @@ class Repo:
             if file.path == filename:
                 return file
 
-    def make_branch(self):
-        sb = self._forked_repo.get_branch(self.target_branch)
+    def _make_branch(self):
+        logger.info('Forking repo...')
+        self._forked_repo = self._original_repo.create_fork()
+        branch = self._get_branch()
+        logger.debug(f'Creating branch {self.branch_name}')
+
         try:
-            logger.debug(f'Creating branch {self.branch_name}')
-            ref = self._forked_repo.create_git_ref(ref=self.branch_name, sha=sb.commit.sha)
+            ref = self._forked_repo.create_git_ref(ref=self.branch_name, sha=branch.commit.sha)
         except GithubException as e:
-            print(f"Branch {self.branch_name} already exists in github")
+            logger.debug(f'Branch {self.branch_name} already exists in github')
         self.branch_exists = True
+
+    def _get_branch(self, tries=1):
+        logger.debug(f'Fetching branch {self.target_branch}...')
+        try:
+            return self._forked_repo.get_branch(self.target_branch)
+        except GithubException as e:
+            if tries > 3:
+                logger.info('Error forking repo. Exiting...')
+                os.exit(1)
+
+            tries += 1
+            logger.debug(f'Fork does not exist yet, trying again try={tries}...')
+            time.sleep(1)
+            return self._get_branch(tries)
 
     def bump_version(self, dry_run=False):
         if self.new_version is None:
@@ -138,7 +155,7 @@ class Repo:
             return
 
         if not self.branch_exists:
-            self.make_branch()
+            self._make_branch()
 
         logger.debug(f'Updating file {repo_file.path}')
         self._forked_repo.update_file(
@@ -157,7 +174,7 @@ class Repo:
             return
 
         if not self.branch_exists:
-            self.make_branch()
+            self._make_branch()
 
         logger.debug(f'Creating file {path}')
         self._forked_repo.create_file(
@@ -175,7 +192,7 @@ class Repo:
             return
 
         if not self.branch_exists:
-            self.make_branch()
+            self._make_branch()
 
         logger.debug(f'Deleting file {file.path}')
         self._forked_repo.delete_file(
