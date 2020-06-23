@@ -14,4 +14,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python-
 COPY --from=builder /rep /rep
 WORKDIR /rep
 RUN pip3 install --no-index --find-links=/rep/wheels .
-ENTRYPOINT ["gordian"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["gordian"]
