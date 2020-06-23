@@ -154,7 +154,8 @@ def create_parser(args):
 
 def apply_transformations(args, transformations, pr_created_callback=None):
     config = Config(args.config_file)
-    transform(args, transformations, config.get_data(), pr_created_callback=pr_created_callback)
+    pr_description = get_pr_description(args)
+    transform(args, transformations, config.get_data(), pr_description, pr_created_callback=pr_created_callback)
 
 def get_pr_description(args):
     if args.description_file is not None:
@@ -162,9 +163,8 @@ def get_pr_description(args):
             return fh.read()
     return args.description
 
-def transform(args, transformations, repositories, pr_created_callback):
+def transform(args, transformations, repositories, pr_description, pr_created_callback):
     pull_request_urls = []
-    pr_description = get_pr_description(args)
     for repo_name in repositories:
         logger.info(f'Processing repo: {repo_name}')
         repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label, target_branch=args.target_branch)
