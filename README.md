@@ -16,16 +16,19 @@ Gordian applies transformations to files in github repositories and create PRs f
 
 This project grew from a need to keep various kubernetes services consistent and roll out changes at scale. The main use case for this tool is to make changes to configuration files across multiple repositories simultaneously.
 
-# Use Cases
+# Usage
 
 ## Search and Replace
 
-You can use the docker image to search and replace various strings across repositories.
+You can use the docker image to search and replace various strings across repositories. It supports simple and complex search/replace strings operations.
 
 ```
 docker run --rm -it argoprojlabs/gordian:latest -h
 usage: gordian [-h] [-c CONFIG_FILE] [-g GITHUB_API] --pr PR_MESSAGE [-v] [-d]
-               [-b BRANCH] [-M | -m | -p] -s SEARCH -r REPLACE
+               [-b BRANCH] [-t TARGET_BRANCH] [-l PR_LABELS [PR_LABELS ...]]
+               [-M | -m | -p]
+               [--description DESCRIPTION | --description-file DESCRIPTION_FILE]
+               [--force-changelog FORCE_CHANGELOG] -s SEARCH -r REPLACE
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -38,9 +41,22 @@ optional arguments:
   -d, --dry-run         Enable dry run mode (default: False)
   -b BRANCH, --branch BRANCH
                         Branch name to use (default: None)
-  -M, --major           Bump the major version. (default: False)
-  -m, --minor           Bump the minor version. (default: False)
-  -p, --patch           Bump the patch version. (default: False)
+  -t TARGET_BRANCH, --target-branch TARGET_BRANCH
+                        Target branch (default: master)
+  -l PR_LABELS [PR_LABELS ...], --labels PR_LABELS [PR_LABELS ...]
+                        List of space separated label names you wish to add to
+                        your pull request(s) (default: [])
+  -M, --major           Bump the major version. (default: None)
+  -m, --minor           Bump the minor version. (default: None)
+  -p, --patch           Bump the patch version. (default: None)
+  --description DESCRIPTION
+                        Description to be passed to the PR. (default: )
+  --description-file DESCRIPTION_FILE
+                        Local file path for the description to be passed to
+                        the PR. (default: None)
+  --force-changelog FORCE_CHANGELOG
+                        Fail if changelog does not exist or cannot be parsed
+                        (default: None)
   -s SEARCH, --search SEARCH
                         The string to search for in config files. (default:
                         None)
@@ -49,9 +65,21 @@ optional arguments:
                         string. (default: None)
 ```
 
+## Simple transformations
+
+You can use the command line interface to make simple changes across various JSON and YAML files, as shown in this example that modifies a kubernetes API Version.
+
+The following command will update the repositories listed in the default config file `config.yaml` by making a new pull request to the target `master` branch
+using a new origin branch `update_k8s_apiversion` by updating all files that contains `apiVersion: apps/v1beta2` to replace it with `apiVersion: apps/v1`.
+The new PR will have the labels `k8s.1.16` and `support` assigned to it and the `minor` version will be bumped.
+
+```bash
+docker run --rm -it argoprojlabs/gordian:latest -b "update_k8s_apiversion" --pr "update_k8s_apiversion" -s "apiVersion: apps/v1beta2" -r "apiVersion: apps/v1" -l k8s.1.16 -v -m
+```
+
 ## Complex transformations
 
-You can use the interface to script complex changes across various JSON and YAML files, as shown in this example that modifies a kubernetes resource. You can see more examples in the `examples` directory.
+You can use the python script interface to make complex changes across various JSON and YAML files, as shown in this example that modifies a kubernetes resource. You can see more examples in the `examples` directory.
 
 ```python
 import sys
@@ -130,8 +158,12 @@ collected 33 items
 
 # Support
 
-## Contributors
+## Creators
 - [Rene Martin](https://github.com/agarfu)
 - [Jonathan Nevelson](https://github.com/jnevelson)
 - [Corey Caverly](https://github.com/coreycaverly)
 - [Sara Blumin](https://github.com/sblumin)
+
+## Contributors
+- [Jeremy Chavez](https://github.com/kaosx5s)
+- [Etienne Grignon](https://github.com/sharpyy)
