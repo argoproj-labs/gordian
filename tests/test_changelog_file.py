@@ -10,7 +10,7 @@ class TestBaseFile(unittest.TestCase):
     def setUp(self):
         self.github_file = Utils.create_github_content_file(file='changelog_no_footer.md')
         self.mock_git = MagicMock()
-        self.repo = Repo('test', git=self.mock_git)
+        self.repo = Repo('test', github=self.mock_git)
         self.repo.new_version = '1.2.0'
         self.changelog = ChangelogFile(self.github_file, self.repo)
 

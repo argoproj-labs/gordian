@@ -9,7 +9,7 @@ class TestBaseFile(unittest.TestCase):
     def setUp(self):
         self.github_file = Utils.create_github_content_file()
         self.mock_git = MagicMock()
-        self.repo = Repo('test', git=self.mock_git)
+        self.repo = Repo('test', github=self.mock_git)
         self.base_file = YamlFile(self.github_file, self.repo)
 
     def test_iterable(self):

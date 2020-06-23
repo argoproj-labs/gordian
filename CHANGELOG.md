@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.0.0] - 2020-06-23
+### Added
+- Gordian now forks the repo instead of creating a branch in the specified repo so that users can run Gordian against repos that they do not have write permissions on.
+
 ## [1.5.0] - 2020-06-23
 ### Added
 - Added the ability to set labels to sent pull requests using a flag.
