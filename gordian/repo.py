@@ -4,6 +4,7 @@ import datetime
 import logging
 import os
 import time
+from retry import retry
 from gordian.files import *
 
 logger = logging.getLogger(__name__)
@@ -121,19 +122,10 @@ class Repo:
             logger.debug(f'Branch {self.branch_name} already exists in github')
         self.branch_exists = True
 
-    def _get_branch(self, tries=1):
+    @retry(GithubException, tries=3, delay=1, backoff=2)
+    def _get_branch(self):
         logger.debug(f'Fetching branch {self.target_branch}...')
-        try:
-            return self._forked_repo.get_branch(self.target_branch)
-        except GithubException as e:
-            if tries > 3:
-                logger.info('Error forking repo. Exiting...')
-                os.exit(1)
-
-            tries += 1
-            logger.debug(f'Fork does not exist yet, trying again try={tries}...')
-            time.sleep(1)
-            return self._get_branch(tries)
+        return self._forked_repo.get_branch(self.target_branch)
 
     def bump_version(self, dry_run=False):
         if self.new_version is None:

@@ -8,7 +8,7 @@ setuptools.setup(
     author_email="cg-sre@intuit.com",
     description="A tool to search and replace files in a Git repo",
     url="https://github.com/argoproj-labs/gordian",
-    install_requires=['pygithub', 'pyyaml', 'jsonpatch', 'deepdiff'],
+    install_requires=['pygithub', 'pyyaml', 'jsonpatch', 'deepdiff', 'retry'],
     setup_requires=setup_reqs,
     extras_require={
         'test': setup_reqs
