@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.1.2] - 2020-06-25
+### Added
+- Added entrypoint script to meet requirements of official docker image consistency
+
 ## [2.1.1] - 2020-06-23
 ### Fixed
 - Fixed setting the labels twice when releasing 2.1.0
