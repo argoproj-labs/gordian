@@ -66,17 +66,11 @@ def get_basic_parser():
         help='Enable dry run mode'
     )
     parser.add_argument(
-        '-b', '--branch',
-        required=False,
-        dest='branch',
-        help='Branch name to use'
-    )
-    parser.add_argument(
         '-t', '--target-branch',
         required=False,
         default='master',
         dest='target_branch',
-        help='Target branch'
+        help='Target branch to create a pull request into'
     )
     parser.add_argument(
         '-l','--labels',
@@ -86,6 +80,21 @@ def get_basic_parser():
         dest='pr_labels',
         help='List of space separated label names you wish to add to your pull request(s)'
     )
+    fork = parser.add_mutually_exclusive_group(required=False)
+    fork.add_argument(
+        '-f', '--fork',
+        default=False,
+        action='store_true',
+        required=False,
+        help='Fork the repo'
+    )
+    fork.add_argument(
+        '-b', '--branch',
+        required=False,
+        dest='branch',
+        help='Branch name to commit to and read file contents from'
+    )
+
     bumpers = parser.add_mutually_exclusive_group(required=False)
     bumpers.add_argument(
             '-M', '--major',
@@ -167,7 +176,14 @@ def transform(args, transformations, repositories, pr_description, pr_created_ca
     pull_request_urls = []
     for repo_name in repositories:
         logger.info(f'Processing repo: {repo_name}')
-        repo = Repo(repo_name, github_api_url=args.github_api, branch=args.branch, semver_label=args.semver_label, target_branch=args.target_branch)
+        repo = Repo(
+                repo_name,
+                github_api_url=args.github_api,
+                branch=args.branch,
+                semver_label=args.semver_label,
+                target_branch=args.target_branch,
+                fork=args.fork
+        )
         for transformation in transformations:
             transformation(args, repo).run()
         if repo.dirty:
@@ -181,7 +197,8 @@ def transform(args, transformations, repositories, pr_description, pr_created_ca
                         pr_created_callback(repo_name, pull_request)
                     logger.info(f'PR created: {args.pr_message}. Branch: {repo.branch_name}. Labels: {args.pr_labels}')
                 except GithubException as e:
-                    logger.info(f'PR already exists for {repo.branch_name}. Error: {e}')
+                    logger.info(f'PR already exists for {repo.branch_name}')
+                    logger.debug(f'Error: {e}')
 
     if pull_request_urls:
         logger.info('Pull requests')

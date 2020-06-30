@@ -30,8 +30,8 @@ class TestSearchAndReplaceTransformation(unittest.TestCase):
 
     def test_both_false_update_files(self):
         assert(self.sandr.run())
-        self.instance._forked_repo.create_git_ref.assert_called_once()
-        self.instance._forked_repo.update_file.assert_called_once()
+        self.instance._source_repo.create_git_ref.assert_called_once()
+        self.instance._source_repo.update_file.assert_called_once()
 
     def test_is_word_found(self):
         f = open('./tests/fixtures/content.yaml', 'r')
@@ -40,11 +40,11 @@ class TestSearchAndReplaceTransformation(unittest.TestCase):
         self.assertFalse(self.sandr.is_word_found(contents, 'hello'))
 
     def test_pr_false_update_files(self):
-        forked_repo = MagicMock()
-        self.instance._forked_repo = forked_repo
+        source_repo = MagicMock()
+        self.instance._source_repo = source_repo
         self.instance.branch_exists = True
         assert(self.sandr.run())
-        forked_repo.update_file.assert_called_once()
+        source_repo.update_file.assert_called_once()
 
     def test_update_files_none(self):
         self.sandr.changesets = (('hello', 'iam'),)
@@ -53,9 +53,7 @@ class TestSearchAndReplaceTransformation(unittest.TestCase):
         self.mock_repo.create_pull.assert_not_called()
 
     def test_update_files_empty(self):
-        self.forked_repo = MagicMock()
-        self.instance._forked_repo = self.forked_repo
-        self.instance._forked_repo.files = []
+        self.instance.files = []
         self.sandr.run()
         self.mock_repo.update_file.assert_not_called()
         self.mock_repo.create_pull.assert_not_called()

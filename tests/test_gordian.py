@@ -21,6 +21,7 @@ class TestGordian(unittest.TestCase):
             self.pr_labels = ['test']
             self.description = ''
             self.description_file = None
+            self.fork = False
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
@@ -28,8 +29,8 @@ class TestGordian(unittest.TestCase):
             instance.dirty = False
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
             RepoMock.assert_has_calls([
-                call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None, target_branch='master'),
-                call('testOrg/TestService2', github_api_url=None, branch='test', semver_label=None, target_branch='master')
+                call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False),
+                call('testOrg/TestService2', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False)
             ])
 
     def test_apply_transformations_with_changes(self):
