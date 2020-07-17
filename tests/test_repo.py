@@ -26,7 +26,7 @@ class TestRepo(unittest.TestCase):
     def test_fork(self):
         repo = Repo(None, branch='', github=self.mock_git, fork=True)
         repo._target_repo.create_fork.assert_called_once()
-        self.assertEqual(repo._source_repo, repo._forked_repo)
+        self.assertNotEqual(repo._source_repo, repo._target_repo)
 
     def test_make_branch_fork(self):
         repo = Repo(None, branch='', github=self.mock_git, fork=True)
@@ -36,8 +36,8 @@ class TestRepo(unittest.TestCase):
         mock_branch.commit.sha = "5e69ff00a3be0a76b13356c6ff42af79ff469ef3"
         repo._make_branch()
         self.assertTrue(repo.branch_exists)
-        repo._forked_repo.get_branch.assert_called_once_with('master')
-        repo._forked_repo.create_git_ref.assert_called_once()
+        repo._source_repo.get_branch.assert_called_once_with('master')
+        repo._source_repo.create_git_ref.assert_called_once()
 
     def test_make_branch_no_fork(self):
         repo = Repo(None, branch='', github=self.mock_git, fork=False)

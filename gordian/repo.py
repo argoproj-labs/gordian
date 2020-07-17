@@ -97,8 +97,7 @@ class Repo:
         self._target_repo = self._github.get_repo(repo_name)
         if fork:
             logger.info('Forking repo...')
-            self._forked_repo = self._target_repo.create_fork()
-            self._source_repo = self._forked_repo
+            self._source_repo = self._target_repo.create_fork()
         else:
             self._source_repo = self._target_repo
 
