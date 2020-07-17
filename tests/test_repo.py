@@ -18,16 +18,37 @@ class TestRepo(unittest.TestCase):
         self.mock_repo.get_branches.return_value = self.mock_branches
         self.mock_git.get_repo.return_value = self.mock_repo
 
-    def test_make_branch(self):
-        repo = Repo(None, branch='', github=self.mock_git)
+    def test_no_fork(self):
+        repo = Repo(None, branch='', github=self.mock_git, fork=False)
+        repo._target_repo.create_fork.assert_not_called()
+        self.assertEqual(repo._source_repo, repo._target_repo)
+
+    def test_fork(self):
+        repo = Repo(None, branch='', github=self.mock_git, fork=True)
+        repo._target_repo.create_fork.assert_called_once()
+        self.assertNotEqual(repo._source_repo, repo._target_repo)
+
+    def test_make_branch_fork(self):
+        repo = Repo(None, branch='', github=self.mock_git, fork=True)
         repo.branch_exists = False
         mock_branch = MagicMock()
         self.mock_repo.get_branch.return_value = mock_branch
         mock_branch.commit.sha = "5e69ff00a3be0a76b13356c6ff42af79ff469ef3"
         repo._make_branch()
         self.assertTrue(repo.branch_exists)
-        repo._forked_repo.get_branch.assert_called_once_with('master')
-        repo._forked_repo.create_git_ref.assert_called_once()
+        repo._source_repo.get_branch.assert_called_once_with('master')
+        repo._source_repo.create_git_ref.assert_called_once()
+
+    def test_make_branch_no_fork(self):
+        repo = Repo(None, branch='', github=self.mock_git, fork=False)
+        repo.branch_exists = False
+        mock_branch = MagicMock()
+        self.mock_repo.get_branch.return_value = mock_branch
+        mock_branch.commit.sha = "5e69ff00a3be0a76b13356c6ff42af79ff469ef3"
+        repo._make_branch()
+        self.assertTrue(repo.branch_exists)
+        repo._source_repo.get_branch.assert_called_once_with('master')
+        repo._source_repo.create_git_ref.assert_called_once()
 
     def test_default_github_url(self):
         self.assertEqual(self.repo.github_api_url, 'https://api.github.com')
@@ -50,33 +71,65 @@ class TestRepo(unittest.TestCase):
         self.assertEquals(len(repo_two.files), 0)
 
     def test_get_files(self):
-        self.repo.set_target_branch('target')
+        self.repo._set_target_branch('target')
         self.repo.files = []
-        self.repo._original_repo = MagicMock()
+        self.repo._source_repo = MagicMock()
         repository_file = MagicMock(path='afile.txt', type='not_dir')
-        self.repo._original_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
+        self.repo._source_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
         self.repo.get_files()
-        self.repo._original_repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
+        self.repo._source_repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
         self.assertEquals(self.repo.files, [repository_file])
 
-    def test_set_target_branch(self):
+    def test__set_target_branch(self):
+        self.repo._set_target_branch('master')
+        self.assertEqual(self.repo.source_branch, 'refs/heads/master')
+
+    def test__set_target_branch_source_branch(self):
+        self.repo._set_target_branch('master', 'something')
+        self.assertEqual(self.repo.source_branch, 'refs/heads/something')
+
+    def test__set_target_branch_reset_file_cache(self):
+        self.repo._set_target_branch('master')
         cached_files = ['cached_file', 'cached_file', 'cached_file']
-        self.repo.files = cached_files.copy()
-        self.repo.set_target_branch('master')
+        self.repo.files = cached_files
         self.assertEqual(self.repo.files, cached_files)
 
-        self.repo.set_target_branch('Something different')
+        self.repo._set_target_branch('Something different')
         self.assertEqual(self.repo.files, [])
         self.assertEqual(self.repo.target_branch, 'Something different')
         self.assertEqual(self.repo.target_ref, 'refs/heads/Something different')
 
     def test_create_pr(self):
         repo = Repo(None, branch='', github=self.mock_git)
-        repo._original_repo = MagicMock()
-        repo._forked_repo = MagicMock()
-        repo._forked_repo.owner.login = 'someone'
+        repo._target_repo = MagicMock()
+        repo._source_repo = MagicMock()
+        repo._source_repo.owner.login = 'someone'
         repo.branch_name = 'branch'
         pr = repo.create_pr('test', '', 'target_branch', ['test'])
-        repo._original_repo.create_pull.assert_called_once_with('test', '', 'target_branch', 'someone:branch')
+        repo._target_repo.create_pull.assert_called_once_with('test', '', 'target_branch', 'someone:branch')
         pr.set_labels.assert_called_once_with('test')
-        repo._forked_repo.create_pull.assert_not_called()
+        repo._source_repo.create_pull.assert_not_called()
+
+    def test__get_new_version_major(self):
+        version_file = MagicMock()
+        version_file.decoded_content = '1.2.3'.encode('utf-8')
+        self.repo.version_file = version_file
+        self.repo.semver_label = 'major'
+        self.repo._get_new_version()
+        self.assertEqual(self.repo.new_version, '2.0.0')
+
+    def test__get_new_version_minor(self):
+        version_file = MagicMock()
+        version_file.decoded_content = '1.2.3'.encode('utf-8')
+        self.repo.version_file = version_file
+        self.repo.semver_label = 'minor'
+        self.repo._get_new_version()
+        self.assertEqual(self.repo.new_version, '1.3.0')
+
+    def test__get_new_version_patch(self):
+        version_file = MagicMock()
+        version_file.decoded_content = '1.2.3'.encode('utf-8')
+        self.repo.version_file = version_file
+        self.repo.semver_label = 'patch'
+        self.repo._get_new_version()
+        self.assertEqual(self.repo.new_version, '1.2.4')
