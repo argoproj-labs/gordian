@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.0.1] - 2020-07-29
+### Fixed
+- Fixed error handling logic when forking to retry when Github returns 404 (because that implies the repo hasn't yet finished forking)
+
 ## [3.0.0] - 2020-07-17
 ### Changed
 - Made forking optional via `--fork` argument, which is mutually exclusive with `--branch`

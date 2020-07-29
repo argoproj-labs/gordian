@@ -125,10 +125,8 @@ class Repo:
             return self._source_repo.get_contents(path, self.source_branch)
         except GithubException as e:
             if e.status == 404:
-                logger.info(f'Repo does not contain {self.source_branch} branch. Exiting...')
-                sys.exit(1)
-            else:
                 raise e
+            logger.info(f'Error fetching repo contents: {e}')
 
     @retry(GithubException, tries=3, delay=1, backoff=2)
     def _make_branch(self):
