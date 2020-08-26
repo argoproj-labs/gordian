@@ -110,6 +110,17 @@ class TestRepo(unittest.TestCase):
         pr.set_labels.assert_called_once_with('test')
         repo._source_repo.create_pull.assert_not_called()
 
+    def test_create_pr_no_labels(self):
+        repo = Repo(None, branch='', github=self.mock_git)
+        repo._target_repo = MagicMock()
+        repo._source_repo = MagicMock()
+        repo._source_repo.owner.login = 'someone'
+        repo.branch_name = 'branch'
+        pr = repo.create_pr('test', '', 'target_branch')
+        repo._target_repo.create_pull.assert_called_once_with('test', '', 'target_branch', 'someone:branch')
+        pr.set_labels.assert_not_called()
+        repo._source_repo.create_pull.assert_not_called()
+
     def test__get_new_version_major(self):
         version_file = MagicMock()
         version_file.decoded_content = '1.2.3'.encode('utf-8')

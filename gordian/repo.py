@@ -210,14 +210,15 @@ class Repo:
             branch=self.branch_name
         )
 
-    def create_pr(self, pr_message, pr_body, target_branch, labels):
+    def create_pr(self, pr_message, pr_body, target_branch, labels=[]):
         pr = self._target_repo.create_pull(
             pr_message,
             pr_body,
             target_branch,
             f'{self._source_repo.owner.login}:{self.branch_name}'
         )
-        pr.set_labels(*labels)
+        if labels:
+            pr.set_labels(*labels)
         return pr
 
     def _get_new_version(self):
