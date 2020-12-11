@@ -18,18 +18,24 @@ class TestRepo(unittest.TestCase):
         self.mock_repo.get_branches.return_value = self.mock_branches
         self.mock_git.get_repo.return_value = self.mock_repo
 
+    @patch('gordian.repo.Github')
+    def test_remove_dot_git_from_repo_name(self, mock_git):
+        self.mock_git.reset_mock()
+        self.repo = Repo('test.git', github=self.mock_git)
+        self.mock_git.get_repo.assert_called_once_with('test')
+
     def test_no_fork(self):
-        repo = Repo(None, branch='', github=self.mock_git, fork=False)
+        repo = Repo('test_repo', branch='', github=self.mock_git, fork=False)
         repo._target_repo.create_fork.assert_not_called()
         self.assertEqual(repo._source_repo, repo._target_repo)
 
     def test_fork(self):
-        repo = Repo(None, branch='', github=self.mock_git, fork=True)
+        repo = Repo('test_repo', branch='', github=self.mock_git, fork=True)
         repo._target_repo.create_fork.assert_called_once()
         self.assertNotEqual(repo._source_repo, repo._target_repo)
 
     def test_make_branch_fork(self):
-        repo = Repo(None, branch='', github=self.mock_git, fork=True)
+        repo = Repo('test_repo', branch='', github=self.mock_git, fork=True)
         repo.branch_exists = False
         mock_branch = MagicMock()
         self.mock_repo.get_branch.return_value = mock_branch
@@ -40,7 +46,7 @@ class TestRepo(unittest.TestCase):
         repo._source_repo.create_git_ref.assert_called_once()
 
     def test_make_branch_no_fork(self):
-        repo = Repo(None, branch='', github=self.mock_git, fork=False)
+        repo = Repo('test_repo', branch='', github=self.mock_git, fork=False)
         repo.branch_exists = False
         mock_branch = MagicMock()
         self.mock_repo.get_branch.return_value = mock_branch
@@ -100,7 +106,7 @@ class TestRepo(unittest.TestCase):
         self.assertEqual(self.repo.target_ref, 'refs/heads/Something different')
 
     def test_create_pr(self):
-        repo = Repo(None, branch='', github=self.mock_git)
+        repo = Repo('test_repo', branch='', github=self.mock_git)
         repo._target_repo = MagicMock()
         repo._source_repo = MagicMock()
         repo._source_repo.owner.login = 'someone'
@@ -111,7 +117,7 @@ class TestRepo(unittest.TestCase):
         repo._source_repo.create_pull.assert_not_called()
 
     def test_create_pr_no_labels(self):
-        repo = Repo(None, branch='', github=self.mock_git)
+        repo = Repo('test_repo', branch='', github=self.mock_git)
         repo._target_repo = MagicMock()
         repo._source_repo = MagicMock()
         repo._source_repo.owner.login = 'someone'
