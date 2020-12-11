@@ -35,6 +35,9 @@ class Repo:
             files = []
         self.files = files
 
+        if repo_name.endswith('.git'):
+            repo_name = repo_name[:-4]
+
         self._initialize_repos(repo_name, fork)
 
         self.version_file = None
