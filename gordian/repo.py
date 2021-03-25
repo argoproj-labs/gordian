@@ -7,6 +7,7 @@ import sys
 import time
 from retry import retry
 from gordian.files import *
+from gordian.files.plaintext_file import PlainTextFile
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,8 @@ class Repo:
             return JsonFile(file, self)
         if ext == '.md':
             return MarkdownFile(file, self)
+
+        return PlainTextFile(file, self)
 
     def get_files(self):
         if not self.files:

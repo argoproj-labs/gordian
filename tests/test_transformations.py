@@ -1,16 +1,21 @@
 import unittest
+
+from gordian.files.plaintext_file import PlainTextFile
 from gordian.repo import Repo
-from gordian.transformations import SearchAndReplace
+from gordian.transformations import SearchAndReplace, PlainTextUpdater
 from unittest.mock import MagicMock, patch
+
+from tests.utils import Utils
 
 
 class TestSearchAndReplaceTransformation(unittest.TestCase):
 
     class Args(object):
-        def __init__(self, dry_run=False, search=['iam'], replace=['hello']):
+        def __init__(self, dry_run=False, search=['iam'], replace=['hello'], file='content.txt'):
             self.dry_run = dry_run
             self.search = search
             self.replace = replace
+            self.file = file
 
     @patch('gordian.repo.Github')
     def setUp(self, mock_git):
@@ -57,3 +62,10 @@ class TestSearchAndReplaceTransformation(unittest.TestCase):
         self.sandr.run()
         self.mock_repo.update_file.assert_not_called()
         self.mock_repo.create_pull.assert_not_called()
+
+    def test_PlainTextUpdater(self):
+        self.file = Utils.create_github_content_file(file='content.txt')
+        self.ptf = PlainTextFile(self.file, self.instance)
+        self.instance.files = [self.ptf.github_file]
+        self.ptu = PlainTextUpdater(TestSearchAndReplaceTransformation.Args(), self.instance)
+        self.assertIs(self.ptu.run(), True)

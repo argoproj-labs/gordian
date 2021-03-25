@@ -80,6 +80,14 @@ def get_basic_parser():
         dest='pr_labels',
         help='List of space separated label names you wish to add to your pull request(s)'
     )
+    parser.add_argument(
+        '-F', '--file',
+        required=False,
+        action='store',
+        dest='file',
+        help='The file to look for for the search/replace transformations'
+    )
+
     fork = parser.add_mutually_exclusive_group(required=False)
     fork.add_argument(
         '-f', '--fork',

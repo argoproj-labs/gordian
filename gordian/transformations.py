@@ -1,9 +1,13 @@
 import logging
+import os
+
 import yaml
 import re
 import jsonpatch
 import copy
 from deepdiff import DeepDiff
+
+from gordian.files.plaintext_file import PlainTextFile
 
 logger = logging.getLogger(__name__)
 
@@ -78,4 +82,27 @@ class JsonPatch(Transformation):
                 file_str = yaml.dump_all(k8s_patches, default_flow_style=False, explicit_start=True)
                 logger.debug(file_str)
                 self.repo.update_file(f, file_str, message, self.dry_run)
+        return changes
+
+
+class PlainTextUpdater(Transformation):
+
+    def __init__(self, args, repo):
+        super().__init__(args, repo)
+
+    def run(self):
+        changes = False
+        regex = re.compile(str.encode(f"{self.args.search[0]}"), re.MULTILINE|re.DOTALL)
+        for file in self.repo.get_files():
+            if os.path.basename(file.path) == self.args.file:
+                logger.info(f'Found file {self.args.file} at the path {file.path}')
+                file_objects = self.repo.get_objects(file.path, PlainTextFile)
+                content_updated = regex.sub(str.encode(f"{self.args.replace[0]}"), file_objects.file_contents)
+                if content_updated != file_objects.file_contents:
+                    logger.info(f'Updating file {file.path}')
+                    file_objects.file_contents = content_updated
+                    logger.debug(f"File has been changed:\n{file_objects._dump()}")
+                    if not self.dry_run:
+                        file_objects.save(f"Updated the file `{file.path}` to search for: {self.args.search[0]} and replace by {self.args.replace[0]}", self.dry_run)
+                    changes = True
         return changes
