@@ -46,6 +46,9 @@ optional arguments:
   -l PR_LABELS [PR_LABELS ...], --labels PR_LABELS [PR_LABELS ...]
                         List of space separated label names you wish to add to
                         your pull request(s) (default: [])
+  -F FILE, --file FILE
+                        File to change, currently only supported with
+                        PlainTextUpdater. (default: None)
   -M, --major           Bump the major version. (default: None)
   -m, --minor           Bump the minor version. (default: None)
   -p, --patch           Bump the patch version. (default: None)
