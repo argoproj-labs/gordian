@@ -2,17 +2,17 @@ from . import MarkdownFile
 import re
 from datetime import datetime
 
-CHANGELOG_ENTRY_REGEX = '.*\[([0-9]*\.[0-9]*\.[0-9]*)\] - [0-9]{4}-[0-9]{1,2}-[0-9]+'
+CHANGELOG_ENTRY_REGEX = ".*\[([0-9]*\.[0-9]*\.[0-9]*)\] - [0-9]{4}-[0-9]{1,2}-[0-9]+"
+
 
 class ChangelogFile(MarkdownFile):
-
     def __init__(self, github_file, repo):
-        self.changelog_entry_types = [ 'added', 'updated', 'removed' ]
+        self.changelog_entry_types = ["added", "updated", "removed"]
         self._generate_interface_methods()
         super().__init__(github_file, repo)
 
     def _load_objects(self):
-        string_lines = [line.decode('utf-8') for line in super()._load_objects()]
+        string_lines = [line.decode("utf-8") for line in super()._load_objects()]
         self.header = []
         changelog_entries = []
         changelog_entry_block = []
@@ -52,27 +52,27 @@ class ChangelogFile(MarkdownFile):
 
         changelog_entries.append(changelog_entry_block)
         if footer_start:
-            self.footer = string_lines[footer_start:len(string_lines) - 1]
+            self.footer = string_lines[footer_start : len(string_lines) - 1]
         else:
-            self.footer =  []
+            self.footer = []
 
         return changelog_entries
 
-    def _dump(self):
+    def _dump(self, serialize_options={}):
         blocks = []
         for o in self.objects:
-            blocks.append('\n'.join(o))
+            blocks.append("\n".join(o))
 
         entries = self._format_new_changelog_entry()
 
-        lines = ['\n'.join(self.header)]
+        lines = ["\n".join(self.header)]
         if entries:
-            lines.append('\n'.join(entries))
-            lines.append('')
-        lines.append('\n'.join(blocks))
-        lines.append('\n'.join(self.footer))
+            lines.append("\n".join(entries))
+            lines.append("")
+        lines.append("\n".join(blocks))
+        lines.append("\n".join(self.footer))
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def _format_new_changelog_entry(self):
         lines = []
@@ -86,22 +86,22 @@ class ChangelogFile(MarkdownFile):
 
     def _format_list_entry(self, list_type):
         lines = []
-        entries = getattr(self, f'_{list_type}')
+        entries = getattr(self, f"_{list_type}")
         for entry, ticket in entries:
             if ticket:
-                line = f'{entry} [{ticket}]'
+                line = f"{entry} [{ticket}]"
             else:
                 line = entry
-            lines.append(f'- {line}')
+            lines.append(f"- {line}")
 
         if lines:
-            header = f'### {list_type.capitalize()}'
+            header = f"### {list_type.capitalize()}"
             lines.insert(0, header)
         return lines
 
     def _generate_interface_methods(self):
         for changelog_entry_type in self.changelog_entry_types:
-            internal_store = f'_{changelog_entry_type}'
+            internal_store = f"_{changelog_entry_type}"
 
             def fn(self, entry, ticket=None, store=internal_store):
                 getattr(self, store).append((entry, ticket))
@@ -110,4 +110,4 @@ class ChangelogFile(MarkdownFile):
             setattr(ChangelogFile, internal_store, [])
 
     def _format_date(self):
-        return datetime.now().strftime('%Y-%m-%d')
+        return datetime.now().strftime("%Y-%m-%d")
