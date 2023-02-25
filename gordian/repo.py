@@ -246,3 +246,6 @@ class Repo:
         elif self.semver_label == 'patch':
             patch = str(int(patch) + 1)
         self.new_version = '.'.join([major, minor, patch])
+    
+    def get_github_client(self):
+        return self._github
