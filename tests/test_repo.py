@@ -150,3 +150,6 @@ class TestRepo(unittest.TestCase):
         self.repo.semver_label = 'patch'
         self.repo._get_new_version()
         self.assertEqual(self.repo.new_version, '1.2.4')
+
+    def test__get_github_client(self):
+        self.assertIsNotNone(self.repo.get_github_client)
