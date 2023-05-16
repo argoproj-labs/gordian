@@ -3,8 +3,6 @@ from github import GithubException
 import datetime
 import logging
 import os
-import sys
-import time
 from retry import retry
 from gordian.files import *
 from gordian.files.plaintext_file import PlainTextFile
@@ -16,7 +14,7 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master', fork=False):
+    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master', fork=False, token=None):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -26,11 +24,14 @@ class Repo:
             self._github = github
         else:
             if "GIT_TOKEN" in os.environ:
-                logger.debug('Using git token')
-                self._github = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_TOKEN'])
+                logger.debug('Using git token from environment variables')
+                token = os.getenv('GIT_TOKEN')
+
+            if token:
+                self._github = Github(base_url=self.github_api_url, login_or_token=token)
             else:
                 logger.debug('Using git username and password')
-                self._github = Github(base_url=self.github_api_url, login_or_token=os.environ['GIT_USERNAME'], password=os.environ['GIT_PASSWORD'])
+                self._github = Github(base_url=self.github_api_url, login_or_token=os.getenv('GIT_USERNAME'), password=os.getenv('GIT_PASSWORD'))
 
         if files is None:
             files = []
