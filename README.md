@@ -130,24 +130,27 @@ if __name__ == '__main__':
 
 # Dependencies
 - `config.yaml` (required) - list of repositories you wish to modify
-- `GIT_USERNAME` (required) - your Github username
-- `GIT_PASSWORD` (required) - Github personal access token that grants write access to the specified repositories
+- `GIT_USERNAME` (optional) - your Github username (combine with `GIT_PASSWORD` OR use `GIT_TOKEN`)
+- `GIT_PASSWORD` (optional) - Github personal access token that grants write access to the specified repositories
+- `GIT_TOKEN` (optional) - Github personal access token that grants write access to the specified repositories
+
+A Github Personal Access Token can also be passed in via the `token=` named parameter. (Added in `3.5.0`)
 
 # Development
 The simplest way to hit the ground running if you want to contribute with code is using docker.
 
 Launch a python container
-```
+```shell
 localhost$ docker run --rm -it  -v $(pwd):$(pwd) -w $(pwd) python:3.7-stretch bash
 ```
 
 Install the project and test dependencies in developer mode
-```
+```shell
 container# pip install -e .[test]
 ```
 
 Run the tests
-```
+```shell
 container# pytest
 =========================================== test session starts ============================================
 platform linux -- Python 3.7.1, pytest-4.5.0, py-1.8.0, pluggy-0.11.0
@@ -170,3 +173,4 @@ collected 33 items
 ## Contributors
 - [Jeremy Chavez](https://github.com/kaosx5s)
 - [Etienne Grignon](https://github.com/sharpyy)
+- [Anshul Vohra](https://github.com/AnshulV98)
