@@ -14,7 +14,7 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master', fork=False, token=None):
+    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master', fork=False, token=None, username=None, password=None):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -23,15 +23,16 @@ class Repo:
         if github is not None:
             self._github = github
         else:
-            if "GIT_TOKEN" in os.environ:
-                logger.debug('Using git token from environment variables')
-                token = os.getenv('GIT_TOKEN')
+            username = os.getenv('GIT_USERNAME', username)
+            password = os.getenv('GIT_PASSWORD', password)
+            token = os.getenv('GIT_TOKEN', token)
 
             if token:
+                logger.debug('Using git token for authentication')
                 self._github = Github(base_url=self.github_api_url, login_or_token=token)
             else:
-                logger.debug('Using git username and password')
-                self._github = Github(base_url=self.github_api_url, login_or_token=os.getenv('GIT_USERNAME'), password=os.getenv('GIT_PASSWORD'))
+                logger.debug('Using git username and password for authentication')
+                self._github = Github(base_url=self.github_api_url, login_or_token=username, password=password)
 
         if files is None:
             files = []

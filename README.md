@@ -130,11 +130,32 @@ if __name__ == '__main__':
 
 # Dependencies
 - `config.yaml` (required) - list of repositories you wish to modify
-- `GIT_USERNAME` (optional) - your Github username (combine with `GIT_PASSWORD` OR use `GIT_TOKEN`)
-- `GIT_PASSWORD` (optional) - Github personal access token that grants write access to the specified repositories
-- `GIT_TOKEN` (optional) - Github personal access token that grants write access to the specified repositories
+- `GIT_USERNAME` (optional) - your Github username
+- `GIT_PASSWORD` (optional) - your Github password or Personal Access Token
+- `GIT_TOKEN` (optional) - Github Personal Access Token that grants write access to the specified repositories
 
-A Github Personal Access Token can also be passed in via the `token=` named parameter. (Added in `3.5.0`)
+# Authentication
+Two methods of authentication are available:
+- Using a Personal Access Token
+- Using a Github Username & Password
+
+A Github Personal Access Token, Github Username and Github Password can also be passed in via the `token=`, `username=` and `password=` named parameters. The passed value will always take precedence over any environment variable. (Added in `3.5.0`)
+
+## Authentication - Personal Access Token
+A Personal Access Token can be used in two ways:
+- Setting the `GIT_TOKEN` environment variable
+- Passing the `token=` named parameter
+
+The Personal Access Token must have `write` access to any specified repositories you wish to submit changes to.
+
+## Authentication - Github Username & Password
+A Github Username and Password combination can be used in two ways:
+- Setting the `GIT_USERNAME` and `GIT_PASSWORD` environment variables
+- Passing the `username=` and `password=` parameters
+
+The user must have `write` access to any specified repositories you wish to submit changes to.
+
+The `GIT_PASSWORD` or `password=` may also contain a Personal Access Token instead of the account password.
 
 # Development
 The simplest way to hit the ground running if you want to contribute with code is using docker.
