@@ -1,5 +1,6 @@
 import unittest
 import pytest
+import os
 from gordian.repo import Repo
 from unittest.mock import MagicMock, patch, call
 from gordian.files import YamlFile
@@ -86,15 +87,15 @@ class TestRepo(unittest.TestCase):
         self.repo._source_repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
         self.assertEquals(self.repo.files, [repository_file])
 
-    def test__set_target_branch(self):
+    def test_set_target_branch(self):
         self.repo._set_target_branch('master')
         self.assertEqual(self.repo.source_branch, 'refs/heads/master')
 
-    def test__set_target_branch_source_branch(self):
+    def test_set_target_branch_source_branch(self):
         self.repo._set_target_branch('master', 'something')
         self.assertEqual(self.repo.source_branch, 'refs/heads/something')
 
-    def test__set_target_branch_reset_file_cache(self):
+    def test_set_target_branch_reset_file_cache(self):
         self.repo._set_target_branch('master')
         cached_files = ['cached_file', 'cached_file', 'cached_file']
         self.repo.files = cached_files
@@ -127,7 +128,7 @@ class TestRepo(unittest.TestCase):
         pr.set_labels.assert_not_called()
         repo._source_repo.create_pull.assert_not_called()
 
-    def test__get_new_version_major(self):
+    def test_get_new_version_major(self):
         version_file = MagicMock()
         version_file.decoded_content = '1.2.3'.encode('utf-8')
         self.repo.version_file = version_file
@@ -135,7 +136,7 @@ class TestRepo(unittest.TestCase):
         self.repo._get_new_version()
         self.assertEqual(self.repo.new_version, '2.0.0')
 
-    def test__get_new_version_minor(self):
+    def test_get_new_version_minor(self):
         version_file = MagicMock()
         version_file.decoded_content = '1.2.3'.encode('utf-8')
         self.repo.version_file = version_file
@@ -143,7 +144,7 @@ class TestRepo(unittest.TestCase):
         self.repo._get_new_version()
         self.assertEqual(self.repo.new_version, '1.3.0')
 
-    def test__get_new_version_patch(self):
+    def test_get_new_version_patch(self):
         version_file = MagicMock()
         version_file.decoded_content = '1.2.3'.encode('utf-8')
         self.repo.version_file = version_file
@@ -151,5 +152,47 @@ class TestRepo(unittest.TestCase):
         self.repo._get_new_version()
         self.assertEqual(self.repo.new_version, '1.2.4')
 
+    @patch('gordian.repo.Github')
+    def test_init_with_passed_token(self, mock_git):
+        Repo('test_repo', token='abcdef')
+        args = {'login_or_token': 'abcdef', 'base_url': 'https://api.github.com'}
+        mock_git.assert_called_with(**args)
+
+    @patch.dict(os.environ, {'GIT_TOKEN': '12345'})
+    @patch('gordian.repo.Github')
+    def test_init_with_token_from_env(self, mock_git):
+        Repo('test_repo')
+        args = {'login_or_token': '12345', 'base_url': 'https://api.github.com'}
+
+        mock_git.assert_called_with(**args)
+
+    @patch.dict(os.environ, {'GIT_USERNAME': 'test-user', 'GIT_PASSWORD': 'test-pass'})
+    @patch('gordian.repo.Github')
+    def test_init_with_user_pass_env(self, mock_git):
+        Repo('test_repo')
+        args = {'login_or_token':'test-user', 'password':'test-pass', 'base_url': 'https://api.github.com'}
+
+        mock_git.assert_called_with(**args)
+
+    @patch('gordian.repo.Github')
+    def test_create_file(self, mock_git):
+        repo = Repo('test_repo', github=mock_git)
+        repo.create_file('test', 'test', 'test file create')
+
+        repo._source_repo.create_file.assert_called_once()
+        self.assertTrue(repo.dirty)
+
+    @patch('gordian.repo.Github')
+    def test_delete_file(self, mock_git):
+        mock_file = MagicMock()
+        repo = Repo('test_repo', github=mock_git)
+        repo.delete_file(mock_file, 'test file delete')
+
+        repo._source_repo.delete_file.assert_called_once()
+        self.assertTrue(repo.dirty)
+
     def test__get_github_client(self):
-        self.assertIsNotNone(self.repo.get_github_client)
+        repo = Repo('test_repo', branch='', github=self.mock_git)
+
+        self.assertIsNotNone(repo.get_github_client())
+        self.assertEqual(repo.get_github_client(), self.mock_git)

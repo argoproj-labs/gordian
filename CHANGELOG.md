@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.5.0] - 2023-05-16
+### Added
+- Added support to pass in a github token, username and password as named parameters
+
+## [3.4.0] - 2023-02-24
+### Added
+- Added method to return the github client
+
+## [3.3.0] - 2022-05-12
+### Added
+- Added support for serialization options when dumping a file
+
 ## [3.2.0] - 2021-03-26
 ### Added
 - Added plain text file support

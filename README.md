@@ -130,24 +130,48 @@ if __name__ == '__main__':
 
 # Dependencies
 - `config.yaml` (required) - list of repositories you wish to modify
-- `GIT_USERNAME` (required) - your Github username
-- `GIT_PASSWORD` (required) - Github personal access token that grants write access to the specified repositories
+- `GIT_USERNAME` (optional) - your Github username
+- `GIT_PASSWORD` (optional) - your Github password or Personal Access Token
+- `GIT_TOKEN` (optional) - Github Personal Access Token that grants write access to the specified repositories
+
+# Authentication
+Two methods of authentication are available:
+- Using a Personal Access Token
+- Using a Github Username & Password
+
+A Github Personal Access Token, Github Username and Github Password can also be passed in via the `token=`, `username=` and `password=` named parameters. The passed value will always take precedence over any environment variable. (Added in `3.5.0`)
+
+## Authentication - Personal Access Token
+A Personal Access Token can be used in two ways:
+- Setting the `GIT_TOKEN` environment variable
+- Passing the `token=` named parameter
+
+The Personal Access Token must have `write` access to any specified repositories you wish to submit changes to.
+
+## Authentication - Github Username & Password
+A Github Username and Password combination can be used in two ways:
+- Setting the `GIT_USERNAME` and `GIT_PASSWORD` environment variables
+- Passing the `username=` and `password=` parameters
+
+The user must have `write` access to any specified repositories you wish to submit changes to.
+
+The `GIT_PASSWORD` or `password=` may also contain a Personal Access Token instead of the account password.
 
 # Development
 The simplest way to hit the ground running if you want to contribute with code is using docker.
 
 Launch a python container
-```
+```shell
 localhost$ docker run --rm -it  -v $(pwd):$(pwd) -w $(pwd) python:3.7-stretch bash
 ```
 
 Install the project and test dependencies in developer mode
-```
+```shell
 container# pip install -e .[test]
 ```
 
 Run the tests
-```
+```shell
 container# pytest
 =========================================== test session starts ============================================
 platform linux -- Python 3.7.1, pytest-4.5.0, py-1.8.0, pluggy-0.11.0
@@ -170,3 +194,4 @@ collected 33 items
 ## Contributors
 - [Jeremy Chavez](https://github.com/kaosx5s)
 - [Etienne Grignon](https://github.com/sharpyy)
+- [Anshul Vohra](https://github.com/AnshulV98)
