@@ -4,9 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
-## [3.6.0] - 2023-05-16
+
+## [3.7.0] - 2023-10-18
 ### Added
 - Added support to pass in a path when calling get_files(), resolves issue #34
+
+## [3.6.0] - 2023-10-06
+### Fix
+- Fetch repo content from target branch
+- Publishing to dockerhub and ghcr together in workflows
+### Added
+- New maintainer added! Welcome @kaosx5s
 
 ## [3.5.0] - 2023-05-16
 ### Added

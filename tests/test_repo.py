@@ -84,7 +84,7 @@ class TestRepo(unittest.TestCase):
         repository_file = MagicMock(path='afile.txt', type='not_dir')
         self.repo._source_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
         self.repo.get_files()
-        self.repo._source_repo.get_contents.assert_has_calls([call('', 'refs/heads/target'), call('directory', 'refs/heads/target')])
+        self.repo._source_repo.get_contents.assert_has_calls([call('', 'target'), call('directory', 'target')])
         self.assertEquals(self.repo.files, [repository_file])
 
     def test_set_target_branch(self):

@@ -130,7 +130,7 @@ class Repo:
     def _get_repo_contents(self, path):
         try:
             logger.debug(f'Fetching repo contents {path}...')
-            return self._source_repo.get_contents(path, self.source_branch)
+            return self._source_repo.get_contents(path, self.target_branch)
         except GithubException as e:
             if e.status == 404:
                 raise e
