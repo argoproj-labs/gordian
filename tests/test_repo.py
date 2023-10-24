@@ -191,6 +191,16 @@ class TestRepo(unittest.TestCase):
         repo._source_repo.delete_file.assert_called_once()
         self.assertTrue(repo.dirty)
 
+    def test_get_files_with_path(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        repository_file = MagicMock(path='test/afile.txt', type='not_dir')
+        self.repo._source_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
+        self.repo.get_files('test')
+        self.repo._source_repo.get_contents.assert_has_calls([call('test', 'target'), call('directory', 'target')])
+        self.assertEquals(self.repo.files, [repository_file])
+
     def test__get_github_client(self):
         repo = Repo('test_repo', branch='', github=self.mock_git)
 

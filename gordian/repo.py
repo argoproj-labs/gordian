@@ -77,9 +77,9 @@ class Repo:
 
         return PlainTextFile(file, self)
 
-    def get_files(self):
+    def get_files(self, path=''):
         if not self.files:
-            contents = self._get_repo_contents('')
+            contents = self._get_repo_contents(path)
 
             while contents:
                 file = contents.pop(0)
