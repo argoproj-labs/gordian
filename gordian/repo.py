@@ -137,6 +137,7 @@ class Repo:
             logger.info(f'Error fetching repo contents: {e}')
         except TimeoutError as e:
             logger.info(f'Error fetching repo contents: {e}')
+            raise e
 
     @retry(GithubException, tries=3, delay=1, backoff=2)
     def _make_branch(self):
