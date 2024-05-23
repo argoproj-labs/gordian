@@ -162,7 +162,7 @@ The simplest way to hit the ground running if you want to contribute with code i
 
 Launch a python container
 ```shell
-localhost$ docker run --rm -it  -v $(pwd):$(pwd) -w $(pwd) python:3.7-stretch bash
+localhost$ docker run --rm -it  -v $(pwd):$(pwd) -w $(pwd)  python:3.11-slim-bullseye bash
 ```
 
 Install the project and test dependencies in developer mode
