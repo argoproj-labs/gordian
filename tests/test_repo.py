@@ -206,3 +206,23 @@ class TestRepo(unittest.TestCase):
 
         self.assertIsNotNone(repo.get_github_client())
         self.assertEqual(repo.get_github_client(), self.mock_git)
+    
+    def test_get_repo_contents_timeout_error(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        self.repo._source_repo.get_contents.side_effect = TimeoutError('Read Timeout')
+        with pytest.raises(Exception) as context:
+            self.repo._get_repo_contents(path='test/afile.txt')
+        assert "Read Timeout" in str(context.value)
+        self.repo._source_repo.get_contents.assert_has_calls([call('test/afile.txt', 'target'), call('test/afile.txt', 'target'), call('test/afile.txt', 'target')])
+
+    
+    def test_get_repo_contents(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        repository_file = MagicMock(path='test/afile.txt', type='not_dir')
+        self.repo._source_repo.get_contents.side_effect = [repository_file]
+        self.repo._get_repo_contents(path='test/afile.txt')
+        self.repo._source_repo.get_contents.assert_has_calls([call('test/afile.txt', 'target')])

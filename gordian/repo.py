@@ -126,7 +126,7 @@ class Repo:
             self.branch_name = f"refs/heads/{datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S.%f')}"
             self.source_branch = self.target_ref
 
-    @retry(GithubException, tries=3, delay=1, backoff=2)
+    @retry((GithubException, TimeoutError), tries=3, delay=1, backoff=2)
     def _get_repo_contents(self, path):
         try:
             logger.debug(f'Fetching repo contents {path}...')
@@ -135,6 +135,9 @@ class Repo:
             if e.status == 404:
                 raise e
             logger.info(f'Error fetching repo contents: {e}')
+        except TimeoutError as e:
+            logger.info(f'Error fetching repo contents: {e}')
+            raise e
 
     @retry(GithubException, tries=3, delay=1, backoff=2)
     def _make_branch(self):
@@ -248,6 +251,6 @@ class Repo:
         elif self.semver_label == 'patch':
             patch = str(int(patch) + 1)
         self.new_version = '.'.join([major, minor, patch])
-    
+
     def get_github_client(self):
         return self._github
