@@ -73,9 +73,9 @@ class TestRepo(unittest.TestCase):
         assert(isinstance(contents, YamlFile))
 
     def test_new_files_object(self):
-        self.assertEquals(len(self.repo.files), 1)
+        self.assertEqual(len(self.repo.files), 1)
         repo_two = Repo('test_two', github_api_url='https://test.github.com', github=MagicMock())
-        self.assertEquals(len(repo_two.files), 0)
+        self.assertEqual(len(repo_two.files), 0)
 
     def test_get_files(self):
         self.repo._set_target_branch('target')
@@ -85,7 +85,7 @@ class TestRepo(unittest.TestCase):
         self.repo._source_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
         self.repo.get_files()
         self.repo._source_repo.get_contents.assert_has_calls([call('', 'target'), call('directory', 'target')])
-        self.assertEquals(self.repo.files, [repository_file])
+        self.assertEqual(self.repo.files, [repository_file])
 
     def test_set_target_branch(self):
         self.repo._set_target_branch('master')
@@ -199,7 +199,7 @@ class TestRepo(unittest.TestCase):
         self.repo._source_repo.get_contents.side_effect = [[MagicMock(path='directory', type='dir')],[repository_file]]
         self.repo.get_files('test')
         self.repo._source_repo.get_contents.assert_has_calls([call('test', 'target'), call('directory', 'target')])
-        self.assertEquals(self.repo.files, [repository_file])
+        self.assertEqual(self.repo.files, [repository_file])
 
     def test__get_github_client(self):
         repo = Repo('test_repo', branch='', github=self.mock_git)
