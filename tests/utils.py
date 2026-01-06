@@ -9,4 +9,4 @@ class Utils:
         f = open(f'./tests/fixtures/{file}', 'r')
         contents = str(base64.b64encode(bytearray(f.read(), 'utf-8')), 'utf-8')
         attributes = {'name': file, 'path': f'/{file}','encoding': 'base64','content': contents}
-        return ContentFile.ContentFile(None, {}, attributes, completed=True)
+        return ContentFile.ContentFile(None, {}, attributes)
