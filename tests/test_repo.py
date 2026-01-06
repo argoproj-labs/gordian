@@ -155,14 +155,14 @@ class TestRepo(unittest.TestCase):
     @patch('gordian.repo.Github')
     def test_init_with_passed_token(self, mock_git):
         Repo('test_repo', token='abcdef')
-        args = {'login_or_token': 'abcdef', 'base_url': 'https://api.github.com'}
+        args = {'login_or_token': 'abcdef', 'base_url': 'https://api.github.com', 'lazy':'False'}
         mock_git.assert_called_with(**args)
 
     @patch.dict(os.environ, {'GIT_TOKEN': '12345'})
     @patch('gordian.repo.Github')
     def test_init_with_token_from_env(self, mock_git):
         Repo('test_repo')
-        args = {'login_or_token': '12345', 'base_url': 'https://api.github.com'}
+        args = {'login_or_token': '12345', 'base_url': 'https://api.github.com', 'lazy':'False'}
 
         mock_git.assert_called_with(**args)
 
@@ -170,7 +170,7 @@ class TestRepo(unittest.TestCase):
     @patch('gordian.repo.Github')
     def test_init_with_user_pass_env(self, mock_git):
         Repo('test_repo')
-        args = {'login_or_token':'test-user', 'password':'test-pass', 'base_url': 'https://api.github.com'}
+        args = {'login_or_token':'test-user', 'password':'test-pass', 'base_url': 'https://api.github.com', 'lazy':'False'}
 
         mock_git.assert_called_with(**args)
 
