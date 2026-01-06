@@ -13,7 +13,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url="https://github.com/argoproj-labs/gordian",
-    install_requires=["pygithub<2.0.0", "pyyaml", "jsonpatch", "deepdiff", "retry"],
+    install_requires=["pygithub<2.6.1", "pyyaml", "jsonpatch", "deepdiff", "retry"],
     setup_requires=setup_reqs,
     extras_require={"test": setup_reqs},
     tests_require=setup_reqs,

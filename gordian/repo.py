@@ -14,7 +14,7 @@ BASE_URL = 'https://api.github.com'
 
 class Repo:
 
-    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master', fork=False, token=None, username=None, password=None):
+    def __init__(self, repo_name, github_api_url=None, branch=None, github=None, files=None, semver_label=None, target_branch='master', fork=False, token=None, username=None, password=None, lazy=False):
         if github_api_url is None:
             self.github_api_url = BASE_URL
         else:
@@ -29,10 +29,10 @@ class Repo:
 
             if token:
                 logger.debug('Using git token for authentication')
-                self._github = Github(base_url=self.github_api_url, login_or_token=token)
+                self._github = Github(base_url=self.github_api_url, login_or_token=token, lazy=lazy)
             else:
                 logger.debug('Using git username and password for authentication')
-                self._github = Github(base_url=self.github_api_url, login_or_token=username, password=password)
+                self._github = Github(base_url=self.github_api_url, login_or_token=username, password=password, lazy=lazy)
 
         if files is None:
             files = []
