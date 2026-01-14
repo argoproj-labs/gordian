@@ -6,7 +6,7 @@ long_description = (this_directory / "README.md").read_text()
 setup_reqs = ["pytest", "pytest-cov", "pytest-runner", "flake8"]
 setuptools.setup(
     name="gordian",
-    version="3.8.0",
+    version="3.8.1",
     author="Intuit",
     author_email="cg-sre@intuit.com",
     description="A tool to search and replace files in a Git repo",

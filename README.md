@@ -10,7 +10,7 @@ Gordian
 [![Latest PyPi Version](https://badge.fury.io/py/gordian.svg)](https://pypi.python.org/pypi/gordian/)
 [![codecov](https://codecov.io/gh/argoproj-labs/gordian/branch/master/graph/badge.svg)](https://codecov.io/gh/argoproj-labs/gordian/)
 [![Python Build Status](https://github.com/argoproj-labs/gordian/workflows/Python%20package/badge.svg)](https://github.com/argoproj-labs/gordian/actions?query=workflow%3A%22Python+package%22)
-[![Docker Build Status](https://img.shields.io/docker/cloud/build/argoprojlabs/gordian.svg)](https://hub.docker.com/repository/docker/argoprojlabs/gordian)
+[![Publish Docker image](https://github.com/argoproj-labs/gordian/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/argoproj-labs/gordian/actions/workflows/docker-publish.yml)
 
 Gordian applies transformations to files in github repositories and create PRs for the owners of the repositories to review and merge them.
 
@@ -77,7 +77,7 @@ using a new origin branch `update_k8s_apiversion` by updating all files that con
 The new PR will have the labels `k8s.1.16` and `support` assigned to it and the `minor` version will be bumped.
 
 ```bash
-docker run --rm -it argoprojlabs/gordian:latest -b "update_k8s_apiversion" --pr "update_k8s_apiversion" -s "apiVersion: apps/v1beta2" -r "apiVersion: apps/v1" -l k8s.1.16 -v -m
+docker run --rm -it ghcr.io/argoproj-labs/gordian:latest -b "update_k8s_apiversion" --pr "update_k8s_apiversion" -s "apiVersion: apps/v1beta2" -r "apiVersion: apps/v1" -l k8s.1.16 -v -m
 ```
 
 ## Complex transformations
