@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.8.0] - 2026-1-14
+### Feat
+
+- feat: drop support for older python versions, support up to 2.6.1 for pygithub (#56)
+
+### Fix
+
+- fix: drop support for outdated python
+- fix: update pygithub to support 2.2.0 or higher
+- fix: update tests for newer pytest
+- fix: check pygithub 2.4.0 support
+- fix: check pygithub 2.6.1 support
+- fix: set lazy to be false by default for backwards compatibility
+- fix: remove completed param for pygithub 2.6.0 support
+- fix: add required requester for pygithub 2.6.0 support
+- fix: fix param typo
+- fix: make requester a magicmock
+- fix: update tests for new lazy param
+- fix: update lazy from str to bool
+
 ## [3.7.1] - 2023-12-15
 ### Fix
 - Removed dockerhub publish
