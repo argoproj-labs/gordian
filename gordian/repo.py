@@ -142,7 +142,7 @@ class Repo:
             logger.info(f'Error fetching repo contents due to unknown object: {e}')
             raise e
         except GithubException as e:
-            # generic catch all for ant other github exceptions
+            # generic catch all for any other github exceptions
             logger.info(f'Error fetching repo contents: {e}')
             raise e
         except TimeoutError as e:
