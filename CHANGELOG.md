@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org).
 
+
+
+## [3.8.2] - 2026-2-27
+### Feat
+
+- feat: sync feature set pygithub (#60)
+
+## [3.8.1] - 2026-1-15
+### Feat
+
+- feat: Updating workflow for python publish pipeline (#58)
+
 ## [3.8.0] - 2026-1-14
 ### Feat
 
