@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch, call, Mock, mock_open, ANY
 class TestGordian(unittest.TestCase):
 
     class Args(object):
-        def __init__(self, config_file='./tests/fixtures/test_config.yaml', dry_run = False):
+        def __init__(self, config_file='./tests/fixtures/test_config.yaml', dry_run = False, lazy = False, pool_size = None, draft = False):
             self.config_file = config_file
             self.major = False
             self.minor = False
@@ -22,6 +22,9 @@ class TestGordian(unittest.TestCase):
             self.description = ''
             self.description_file = None
             self.fork = False
+            self.lazy = lazy
+            self.pool_size = pool_size
+            self.draft = draft
 
     def test_apply_transformations_without_changes(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
@@ -29,8 +32,8 @@ class TestGordian(unittest.TestCase):
             instance.dirty = False
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
             RepoMock.assert_has_calls([
-                call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False),
-                call('testOrg/TestService2', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False)
+                call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False, lazy=False, pool_size=None),
+                call('testOrg/TestService2', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False, lazy=False, pool_size=None)
             ])
 
     def test_apply_transformations_with_changes(self):
@@ -39,7 +42,9 @@ class TestGordian(unittest.TestCase):
             instance.dirty = True
             apply_transformations(TestGordian.Args(), [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
-            RepoMock.assert_has_calls([call().create_pr('test', '', 'master', ANY), call().create_pr('test', '', 'master', ANY)], any_order=True)
+            RepoMock.assert_has_calls([
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False)], any_order=True)
 
     def test_apply_transformations_with_changes_dry_run(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
@@ -47,7 +52,39 @@ class TestGordian(unittest.TestCase):
             instance.dirty = True
             apply_transformations(TestGordian.Args(dry_run=True), [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(True), call().bump_version(True)], any_order=True)
-            self.assertNotIn(call().repo.create_pr('test', '', 'master', ANY), RepoMock.mock_calls)
+            self.assertNotIn(call().repo.create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False), RepoMock.mock_calls)
+
+    def test_apply_transformations_with_changes_draft(self):
+        with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
+            instance = RepoMock.return_value
+            instance.dirty = True
+            apply_transformations(TestGordian.Args(draft=True), [TransformationMockClass])
+            RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
+            RepoMock.assert_has_calls([
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=True),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=True)], any_order=True)
+
+    def test_apply_transformations_with_changes_lazy(self):
+        with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
+            instance = RepoMock.return_value
+            instance.dirty = True
+            apply_transformations(TestGordian.Args(lazy=True), [TransformationMockClass])
+            RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
+            RepoMock.assert_has_calls([
+                call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False, lazy=True, pool_size=None),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False)], any_order=True)
+
+    def test_apply_transformations_with_changes_pool_size(self):
+        with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
+            instance = RepoMock.return_value
+            instance.dirty = True
+            apply_transformations(TestGordian.Args(pool_size=10), [TransformationMockClass])
+            RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
+            RepoMock.assert_has_calls([
+                call('testOrg/TestService1', github_api_url=None, branch='test', semver_label=None, target_branch='master', fork=False, lazy=False, pool_size=10),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False)], any_order=True)
 
     def test_apply_transformations_with_changes_and_callback(self):
         with patch('gordian.gordian.Repo') as RepoMock, patch('gordian.transformations.Transformation') as TransformationMockClass:
@@ -60,8 +97,8 @@ class TestGordian(unittest.TestCase):
             pull_request = RepoMock.return_value.create_pr.return_value
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
             RepoMock.assert_has_calls([
-                call().create_pr('test', '', 'target_branch', ANY),
-                call().create_pr('test', '', 'target_branch', ANY)],
+                call().create_pr(pr_message='test', pr_body='', target_branch='target_branch', labels=ANY, draft=False),
+                call().create_pr(pr_message='test', pr_body='', target_branch='target_branch', labels=ANY, draft=False)],
                 any_order=True
             )
             callback_mock.assert_has_calls([
@@ -77,7 +114,9 @@ class TestGordian(unittest.TestCase):
             gordian_args.pr_labels = []
             apply_transformations(gordian_args, [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
-            RepoMock.assert_has_calls([call().create_pr('test', '', 'master', ANY), call().create_pr('test', '', 'master', ANY)], any_order=True)
+            RepoMock.assert_has_calls([
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False),
+                call().create_pr(pr_message='test', pr_body='', target_branch='master', labels=ANY, draft=False)], any_order=True)
             self.assertNotIn(call()._repo.create_pull().set_labels(ANY), RepoMock.mock_calls)
 
     def test_apply_transformations_with_changes_custom_description(self):
@@ -89,4 +128,6 @@ class TestGordian(unittest.TestCase):
             gordian_args.description_file = './tests/fixtures/pr_description'
             apply_transformations(gordian_args, [TransformationMockClass])
             RepoMock.assert_has_calls([call().bump_version(False), call().bump_version(False)], any_order=True)
-            RepoMock.assert_has_calls([call().create_pr('test', description, 'master', ANY), call().create_pr('test', description, 'master', ANY)], any_order=True)
+            RepoMock.assert_has_calls([
+                call().create_pr(pr_message='test', pr_body=description, target_branch='master', labels=ANY, draft=False),
+                call().create_pr(pr_message='test', pr_body=description, target_branch='master', labels=ANY, draft=False)], any_order=True)

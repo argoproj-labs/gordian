@@ -224,7 +224,13 @@ def transform(args, transformations, repositories, pr_description, pr_created_ca
             repo.bump_version(args.dry_run)
             if not args.dry_run:
                 try:
-                    pull_request = repo.create_pr(args.pr_message, pr_description, args.target_branch, args.pr_labels)
+                    pull_request = repo.create_pr(
+                        pr_message=args.pr_message,
+                        pr_body=pr_description,
+                        target_branch=args.target_branch,
+                        labels=args.pr_labels,
+                        draft=args.draft
+                    )
                     pull_request_urls.append(pull_request.html_url)
                     if pr_created_callback is not None:
                         logger.debug(f'Calling post pr created callback with: {pull_request}, {repo.branch_name}')

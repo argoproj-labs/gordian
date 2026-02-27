@@ -222,11 +222,13 @@ class Repo:
         )
 
     def create_pr(self, pr_message, pr_body, target_branch, labels=[], draft=False):
+        # https://github.com/PyGithub/PyGithub/blob/v2.8.1/github/Repository.py#L1822 , we need to stay in-line with the PyGithub library
         pr = self._target_repo.create_pull(
-            pr_message,
-            pr_body,
-            target_branch,
-            f'{self._source_repo.owner.login}:{self.branch_name}'
+            title=pr_message,
+            body=pr_body,
+            base=target_branch,
+            head=f'{self._source_repo.owner.login}:{self.branch_name}',
+            draft=draft
         )
         if labels:
             pr.set_labels(*labels)
