@@ -84,7 +84,6 @@ def get_basic_parser():
         '--draft',
         required=False,
         default=False,
-        action='store_true',
         dest='draft',
         help='Create a draft pull request'
     )
@@ -92,7 +91,6 @@ def get_basic_parser():
         '--lazy',
         required=False,
         default=False,
-        action='store_true',
         dest='lazy',
         help='Use lazy loading for the Github client'
     )
