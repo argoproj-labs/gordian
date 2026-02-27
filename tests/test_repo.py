@@ -2,6 +2,7 @@ import unittest
 import pytest
 import os
 from gordian.repo import Repo
+from github import BadCredentialsException, RateLimitExceededException, UnknownObjectException, GithubException
 from unittest.mock import MagicMock, patch, call
 from gordian.files import YamlFile
 from .utils import Utils
@@ -86,6 +87,48 @@ class TestRepo(unittest.TestCase):
         self.repo.get_files()
         self.repo._source_repo.get_contents.assert_has_calls([call('', 'target'), call('directory', 'target')])
         self.assertEqual(self.repo.files, [repository_file])
+
+    def test_get_files_bad_credentials_exception(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        self.repo._source_repo.get_contents.side_effect = BadCredentialsException('Bad Credentials')
+        with pytest.raises(BadCredentialsException):
+            self.repo.get_files()
+
+    def test_get_files_rate_limit_exception(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        self.repo._source_repo.get_contents.side_effect = RateLimitExceededException('Rate Limit Exceeded')
+        with pytest.raises(RateLimitExceededException):
+            self.repo.get_files()
+
+    def test_get_files_unknown_object_exception(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        self.repo._source_repo.get_contents.side_effect = UnknownObjectException('Unknown Object')
+        with pytest.raises(UnknownObjectException):
+            self.repo.get_files()
+
+    def test_get_files_generic_github_exception(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        self.repo._source_repo.get_contents.side_effect = GithubException('Generic Exception')
+        with pytest.raises(GithubException):
+            self.repo.get_files()
+
+    def test_create_branch_generic_github_exception_fall_through(self):
+        self.repo._set_target_branch('target')
+        self.repo.files = []
+        self.repo._source_repo = MagicMock()
+        self.repo._source_repo.create_git_ref.side_effect = GithubException('Branch already exists')
+
+        self.repo._make_branch()
+        self.repo._source_repo.create_git_ref.assert_called_once()
+        assert self.repo.branch_exists
 
     def test_set_target_branch(self):
         self.repo._set_target_branch('master')

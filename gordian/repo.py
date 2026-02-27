@@ -1,5 +1,4 @@
-from github import Github
-from github import GithubException
+from github import Github, GithubException, BadCredentialsException, RateLimitExceededException, UnknownObjectException
 import datetime
 import logging
 import os
@@ -126,15 +125,26 @@ class Repo:
             self.branch_name = f"refs/heads/{datetime.datetime.now().strftime('%Y-%m-%d-%H%M%S.%f')}"
             self.source_branch = self.target_ref
 
-    @retry((GithubException, TimeoutError), tries=3, delay=1, backoff=2)
+    @retry((GithubException, TimeoutError, RateLimitExceededException), tries=3, delay=1, backoff=2)
     def _get_repo_contents(self, path):
         try:
             logger.debug(f'Fetching repo contents {path}...')
             return self._source_repo.get_contents(path, self.target_branch)
+
+        # https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#get-repository-content--status-codes
+        except BadCredentialsException as e:
+            logger.info(f'Error fetching repo contents due to bad credentials: {e}')
+            raise e
+        except RateLimitExceededException as e:
+            logger.info(f'Error fetching repo contents due to rate limit: {e}')
+            raise e
+        except UnknownObjectException as e:
+            logger.info(f'Error fetching repo contents due to unknown object: {e}')
+            raise e
         except GithubException as e:
-            if e.status == 404:
-                raise e
+            # generic catch all for ant other github exceptions
             logger.info(f'Error fetching repo contents: {e}')
+            raise e
         except TimeoutError as e:
             logger.info(f'Error fetching repo contents: {e}')
             raise e
