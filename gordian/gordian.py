@@ -81,6 +81,30 @@ def get_basic_parser():
         help='List of space separated label names you wish to add to your pull request(s)'
     )
     parser.add_argument(
+        '--draft',
+        required=False,
+        default=False,
+        action='store_true',
+        dest='draft',
+        help='Create a draft pull request'
+    )
+    parser.add_argument(
+        '--lazy',
+        required=False,
+        default=False,
+        action='store_true',
+        dest='lazy',
+        help='Use lazy loading for the Github client'
+    )
+    parser.add_argument(
+        '--pool-size',
+        required=False,
+        default=None,
+        action='store',
+        dest='pool_size',
+        help='Pool size for the Github client'
+    )
+    parser.add_argument(
         '-F', '--file',
         required=False,
         action='store',
@@ -190,7 +214,9 @@ def transform(args, transformations, repositories, pr_description, pr_created_ca
                 branch=args.branch,
                 semver_label=args.semver_label,
                 target_branch=args.target_branch,
-                fork=args.fork
+                fork=args.fork,
+                lazy=args.lazy,
+                pool_size=args.pool_size
         )
         for transformation in transformations:
             transformation(args, repo).run()
